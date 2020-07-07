@@ -1,8 +1,8 @@
 
 from phidias.Lib import *
 
-from sensors import *
 from actions import *
+from sensors import *
 
 # SIMULATING EVENTS
 
