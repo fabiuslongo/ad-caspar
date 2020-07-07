@@ -1,0 +1,1309 @@
+import spacy
+import platform
+import os
+
+class Parse(object):
+    def __init__(self, VERBOSE):
+
+        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'advcl', 'case', 'intj', 'dep', 'predet']
+
+        self.adv_adj_POS = ['RB', 'UH', 'RP', 'PRP', 'RBS', 'JJ', 'NN', 'RBR', 'DT']
+
+        self.POS_FILTER = []
+
+        self.VERBOSE = VERBOSE
+
+        self.BLACK_LIST_WORDS = ['that', 'which', 'then', 'That', 'Which', 'Then']
+
+        # nlp engine instantiation
+        print("\nNLP engine initializing. Please wait...")
+
+        # python -m spacy download en_core_web_md
+        self.nlp = spacy.load('en_core_web_md')  # 91 MB
+
+        # python -m spacy download en_core_web_lg
+        # self.nlp = spacy.load('en_core_web_lg')  # 789 MB
+
+        if platform.system() == "Windows":
+            os.system('cls')
+        else:
+            os.system('clear')
+
+    def get_nlp_engine(self):
+        return self.nlp
+
+
+    def create_MST(self, deps, dav, var):
+
+        index_args_counter = 0
+        davidsonian_index = 0
+
+        pending_prep = []
+        preps = []
+        mods = []
+        compounds = []
+
+        pendings = []
+        var_list = []
+
+        cond = []
+        adv_adj = []
+
+        pending_agent = []
+        pending_prt = []
+
+        for triple in deps:
+            if triple[0] not in self.FILTER:
+
+                if triple[0] == "nsubj" or triple[0] == "nsubjpass":
+
+                    PENDING_FOUND = False
+
+                    # looking for a pending
+                    for p in pendings:
+                        if triple[1] == p[0]:
+                            PENDING_FOUND = True
+
+                            index_args_counter = index_args_counter + 1
+                            p[2] = var + str(index_args_counter)
+
+                            assignment = []
+                            assignment.append(var + str(index_args_counter))
+                            assignment.append(triple[2])
+
+                            var_list.append(assignment)
+
+                    if PENDING_FOUND == False:
+
+                        # creating a pending
+
+                        p = []
+                        p.append(triple[1])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav+str(davidsonian_index))
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var+str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+
+                        if triple[0] == "nsubjpass":
+                            assignment.append('?')
+                        else:
+                            assignment.append(triple[2])
+                        var_list.append(assignment)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+
+                        if triple[0] == "nsubjpass":
+                            assignment.append(triple[2])
+                        else:
+                            assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- nsubj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "expl":
+
+                    # creating a pending
+
+                    p = []
+                    p.append(triple[1])
+
+                    davidsonian_index = davidsonian_index + 1
+                    p.append(dav+str(davidsonian_index))
+
+                    # void variable for intransitive verb mode
+                    p.append('_')
+
+                    # second variable void
+                    index_args_counter = index_args_counter + 1
+                    p.append(var+str(index_args_counter))
+                    assignment = []
+                    assignment.append(var+str(index_args_counter))
+                    assignment.append('?')
+                    var_list.append(assignment)
+
+                    pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- expl ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "csubj":
+
+                    davidsonian_found = "UNASSIGNED"
+
+                    # retriving dependent-related davidsonian
+
+                    for p in pendings:
+                        if p[0] == triple[2]:
+                            davidsonian_found = p[1]
+
+                    p = []
+                    p.append(triple[1])
+
+                    davidsonian_index = davidsonian_index + 1
+                    p.append(dav+str(davidsonian_index))
+
+                    # setting retrived davisdonian
+                    p.append(davidsonian_found)
+
+                    index_args_counter = index_args_counter + 1
+                    p.append(var+str(index_args_counter))
+                    pendings.append(p)
+
+                    assignment = []
+                    assignment.append(var+str(index_args_counter))
+                    assignment.append('?')
+
+                    var_list.append(assignment)
+
+                    if self.VERBOSE is True:
+                        print('--------- csubj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "parataxis":
+
+                    davidsonian_found = "UNASSIGNED"
+                    PENDING_FOUND = False
+
+                    # retriving dependent-related davidsonian
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[1]:
+                            davidsonian_found = p[1]
+                            PENDING_FOUND = True
+
+                    if PENDING_FOUND:
+                        # retriving governor pending for setting davidsonian as object
+                        for p in pendings:
+                            if self.get_first_token(p[0]) == triple[2]:
+                                p[3] = davidsonian_found
+
+                    if self.VERBOSE is True:
+                        print('--------- csubj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "ccomp":
+
+                    davidsonian_found = "UNASSIGNED"
+                    PENDING_FOUND = False
+
+                    # retriving dependent-related davidsonian
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[2]:
+                            davidsonian_found = p[1]
+                            PENDING_FOUND = True
+
+                    if PENDING_FOUND:
+                        # retriving governor pending for setting davidsonian as object
+                        for p in pendings:
+                            if self.get_first_token(p[0]) == triple[1]:
+                                p[3] = davidsonian_found
+                    else:
+                        # creating a pending
+
+                        p = []
+                        p.append(triple[2])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav + str(davidsonian_index))
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- ccomp ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "acl":
+
+                    PENDING_FOUND = False
+                    variation = "UNASSIGNED"
+                    VAR_FOUND = False
+
+                    # the new object of a pending become triple[1]
+
+                    # searching and storing the variable linked to triple[1], if exists
+                    for v in var_list:
+                        if triple[1] == v[1]:
+                            variation = v[0]
+                            VAR_FOUND = True
+
+
+                    # searching (and changing) the pending's subject related to triple[2]
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[2]:
+                            PENDING_FOUND = True
+                            if VAR_FOUND == True:
+                                p[3] = variation
+                            else:
+                                var_to_change = p[3]
+                                for v in var_list:
+                                    if v[0] == var_to_change:
+                                        v[1] = triple[1]
+
+                    if PENDING_FOUND is False:
+
+                        # creating new pending with triple[1] as object
+
+                        p = []
+                        p.append(triple[2])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav+str(davidsonian_index))
+
+                        p.append(variation)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var+str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- acl ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "relcl":
+
+                    PENDING_FOUND = False
+                    related_var = "UNASSIGNED"
+                    related_davidsonian = "UNASSIGNED"
+
+
+                    subj = "UNASSIGNED"
+                    obj = "UNASSIGNED"
+
+                    subj_val = "UNASSIGNED"
+                    obj_val = "UNASSIGNED"
+
+                    VAR_USED = False
+
+                    # the new subject/object of a pending become triple[1]'s related
+
+                    # getting davisdonian, subj and obj of triple[2]
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[2]:
+                            related_davidsonian = p[1]
+                            subj = p[2]
+                            obj = p[3]
+
+                    # getting triple[1]'s related variable
+                    for v in var_list:
+                        if v[1] == triple[1]:
+                            related_var = v[0]
+                        if v[0] == subj:
+                            subj_val = v[1]
+                        if v[0] == obj:
+                            obj_val = v[1]
+
+                    for prep in preps:
+                        if related_var in prep:
+                            VAR_USED = True
+
+                    if VAR_USED is False:
+                        # searching (and changing) the pending's subject/object related to triple[2]
+                        for p in pendings:
+                            if p[1] == related_davidsonian:
+                                if self.get_pos(triple[2]) == "VBN":
+                                        p[3] = related_var
+                                else:
+                                        if self.get_pos(subj_val) not in ["PRP", "NN", "NNP", "NNPS"]:
+                                            p[2] = related_var
+                                        else:
+                                            p[3] = related_var
+                                PENDING_FOUND = True
+
+
+                    if PENDING_FOUND is False and VAR_USED is False:
+                        # creating new pending with triple[1] as subject
+
+                        p = []
+                        p.append(triple[2])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav+str(davidsonian_index))
+
+                        p.append(related_var)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var+str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- relcl ----------'+str(triple))
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "dobj":
+
+                    PENDING_FOUND = False
+
+                    # updating var_list
+
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[1]:
+                            pendings_object_found = p[3]
+                            PENDING_FOUND = True
+                            for v in var_list:
+                                if v[0] == pendings_object_found:
+                                    if v[1] == '?':
+                                        v[1] = triple[2]
+
+                    # imperative case
+
+                    if PENDING_FOUND == False:
+
+                        p = []
+
+                        p.append(triple[1])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav+ str(davidsonian_index))
+
+                        p.append('_')
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var+str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+                        assignment.append(triple[2])
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                        prt_found = False
+
+                        for prt in pending_prt:
+                            if prt[0] == triple[1]:
+                               particle = prt[1]
+                               prt_found = True
+
+                        if prt_found is True:
+                            for v in var_list:
+                                if v[1] == particle:
+                                    v[0] = dav+str(davidsonian_index)
+
+
+                    if self.VERBOSE is True:
+                        print('--------- dobj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "attr" or triple[0] == "acomp":
+
+                    # updating var_list
+                    var_to_change = 'UNASSIGNED'
+
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[1]:
+                            var_to_change = p[3]
+
+                    for v in var_list:
+                        if v[0] == var_to_change:
+                            v[1] = triple[2]
+
+                    if self.VERBOSE is True:
+                        print('--------- attr-acomp ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "prep":
+
+                    davidsonian_found = "UNASSIGNED"
+                    found_var = "UNASSIGNED"
+                    found_mod = "UNASSIGNED"
+                    d_found = False
+
+                    pending_prep.append(triple[2])
+
+                    # searching triple[1] in pendings
+
+
+                    for p in pendings:
+                        if self.get_first_token(p[0]) == triple[1] or self.get_first_token(p[0]) == found_mod:
+                            davidsonian_found = p[1]
+                            d_found = True
+
+                    # searching triple[1] in mods --- case oprd
+
+                    if d_found is False:
+                        for m in mods:
+                            if m[1] == triple[1]:
+                                found_mod = m[0]
+
+                        for v in var_list:
+                            if v[1] == found_mod:
+                                found_var = v[0]
+
+                        for p in pendings:
+                            # case var
+                            if p[3] == found_var:
+                                davidsonian_found = p[1]
+                                d_found = True
+                            # case verb
+                            if p[0] == found_mod:
+                                davidsonian_found = p[1]
+                                d_found = True
+
+                    # searching triple[1] in compounds
+
+                    if d_found is False:
+                        for m in mods:
+                            if m[1] == triple[1]:
+                                found_mod = m[0]
+                        for v in var_list:
+                            if v[1] == found_mod:
+                                found_var = v[0]
+                        for p in pendings:
+                            if p[3] == found_var:
+                                davidsonian_found = p[1]
+                                d_found = True
+
+                    # searching triple[1] in adv_adj
+
+                    if d_found is False:
+                        for v in adv_adj:
+                            if v[1] == triple[1]:
+                                for p in pendings:
+                                    if self.get_first_token(p[0]) == v[0]:
+                                        davidsonian_found = p[1]
+                                        d_found = True
+
+                    if d_found is False:
+
+                        # retriving triple[1] from var_list
+
+                        for v in var_list:
+                            if v[1] == triple[1]:
+                                found_var = v[0]
+
+                        # retriving related davidsonian from pendings and preps table
+
+                        for prep in preps:
+                            if prep[2] == found_var:
+                                davidsonian_found = prep[1]
+
+                        for p in pendings:
+                            if p[3] == found_var or p[2] == found_var:
+                                davidsonian_found = p[1]
+
+                    # case example: of:IN(e1, x5)
+                    if found_var == 'UNASSIGNED':
+                        pending_prep.append(davidsonian_found)
+                    else:
+                        pending_prep.append(found_var)
+
+                    # updating var_list
+
+                    index_args_counter = index_args_counter + 1
+                    assignment = []
+                    assignment.append(var + str(index_args_counter))
+                    assignment.append('?')
+                    var_list.append(assignment)
+
+                    pending_prep.append(var + str(index_args_counter))
+
+                    if self.VERBOSE is True:
+                        print('--------- prep ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "agent":
+
+                    pending_agent.append(triple[1])
+                    for p in pendings:
+                        if p[0] == triple[1]:
+                            pending_agent.append(p[1])
+
+                    if self.VERBOSE is True:
+                        print('--------- agent ----------')
+                        print('pending_agent: ' + str(pending_agent))
+
+                elif triple[0] == "pobj" or triple[0] == "pcomp":
+
+                    # updating var_list
+
+                    var_to_change = ""
+
+                    # looking for pending preps...
+
+                    if len(pending_prep) > 0:
+                        if triple[1] == pending_prep[0]:
+                            for v in var_list:
+                                if v[0] == pending_prep[2]:
+                                    v[1] = triple[2]
+
+                        preps.append(pending_prep)
+                        pending_prep = []
+
+                    # looking for pending agents...
+
+                    VAR_CHANGED = False
+                    subj = "UNASSIGNED"
+                    obj = "UNASSIGNED"
+
+                    if len(pending_agent) > 0:
+                        # retriving related pending var
+                        for p in pendings:
+                            if p[0] == pending_agent[0]:
+                                subj = p[2]
+                                obj = p[3]
+
+                        # retriving related pending val
+                        for v in var_list:
+                            if v[0] == subj:
+                                if v[1] == '?':
+                                    v[1] = triple[2]
+                                    VAR_CHANGED = True
+                            if VAR_CHANGED is False and v[0] == obj:
+                                if v[1] == '?':
+                                   v[1] = triple[2]
+                        pending_agent = []
+
+                    if self.VERBOSE is True:
+                        print('--------- pobj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "xcomp":
+
+                    PENDING_FOUND = False
+                    PAST_PART_CASE = False
+                    object = "UNASSIGNED"
+
+                    #concatenate triple[2] to triple[1] related pending
+                    for pend in pendings:
+                        if self.get_first_token(pend[0]) == triple[1]:
+                            PENDING_FOUND = True
+                            if self.get_pos(triple[1]) != "VBN":
+                                pend[0] = triple[2]+'_'+pend[0]
+                            else:
+                                # past participle case
+                                PAST_PART_CASE = True
+                                object = pend[3]
+
+                    if PENDING_FOUND is False:
+
+                        p = []
+                        p.append(triple[2]+"_"+triple[1])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav + str(davidsonian_index))
+
+                        # void subject
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        # void object
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    elif PAST_PART_CASE:
+
+                        p = []
+
+                        p.append(triple[2])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav + str(davidsonian_index))
+
+                        p.append(object)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                        prt_found = False
+
+                        for prt in pending_prt:
+                            if prt[0] == triple[2]:
+                                particle = prt[1]
+                                prt_found = True
+
+                        if prt_found is True:
+                            for v in var_list:
+                                if v[1] == particle:
+                                    v[0] = dav + str(davidsonian_index)
+
+                    if self.VERBOSE is True:
+                        print('--------- xcomp ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "oprd":
+
+                    var_found = "UNASSIGNED"
+                    VAR_CHANGED = False
+
+                    # creating a mod for the predicate of a verb object
+
+                    m = []
+                    for p in pendings:
+                        if p[0] == triple[1]:
+                            var_found = p[3]
+
+                    for v in var_list:
+                        if v[0] == var_found:
+                            if v[1] == '?':
+                                VAR_CHANGED = True
+                                v[1] = triple[2]
+                            else:
+                                m.append(v[1])
+
+                    if VAR_CHANGED is False:
+                        m.append(triple[2])
+                        mods.append(m)
+
+                    # rectifing mods vector
+                    for m_est in mods:
+                        for v in var_list:
+                            if v[1] == m_est[0]:
+                                for m_int in mods:
+                                    if m_int[0] == m_est[1]:
+                                        m_int[0] = v[1]
+
+
+                    if self.VERBOSE is True:
+                        print('--------- oprd ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "amod" or triple[0] == "poss" or triple[0] == "nummod" or triple[0] == "nmod" or triple[0] == 'appos' or triple[0] == 'quantmod':
+
+                    m = []
+                    m.append(triple[1])
+                    m.append(triple[2])
+                    mods.append(m)
+
+                    # rectifing bindings vector
+                    for mod in mods:
+                        if mod[0] == triple[2]:
+                            mod[0] = triple[1]
+
+                    # rectifing adv_adj vector
+                        for adv in adv_adj:
+                            if adv[0] == triple[2]:
+                                adv[0] = triple[1]
+
+                    if self.VERBOSE is True:
+                        print('--------- amod ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "compound":
+
+                    new_compound = []
+                    new_compound.append(triple[1])
+                    new_compound.append(triple[2])
+                    compounds.append(new_compound)
+
+                    # rectifing compounds
+                    for cmp in compounds:
+                        for cmp2 in compounds:
+                            if cmp[1] == cmp2[0]:
+                                cmp2[0] = cmp[0]
+
+                    if self.VERBOSE is True:
+                        print('--------- compound ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pendings_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "conj":
+
+                    #dealing with not:RB case classified inside a conj
+
+                    if self.get_pos(triple[1]) in self.adv_adj_POS and self.get_pos(triple[2]) in self.adv_adj_POS:
+
+                        # firstly adverb assumed to be cond
+
+                        m = []
+                        m.append(triple[1])
+                        m.append(triple[2])
+                        adv_adj.append(m)
+                        new_mod = []
+
+                        # rectifing adv_adj vector
+                        for adv in adv_adj:
+                            for adv2 in adv_adj:
+                                if adv[1] == adv2[0]:
+                                    adv2[0] = adv[0]
+                    else:
+
+                        found_mod = False
+
+                        # searching into var_list
+                        for v in var_list:
+                            if v[1] == triple[1]:
+                                new_mod = []
+                                new_mod.append(v[1])
+                                new_mod.append(triple[2])
+                                found_mod = True
+
+                        # searching into mods
+
+                        if found_mod is False:
+                           for m in mods:
+                                if m[0] == triple[1] or m[1] == triple[1]:
+                                    new_mod = []
+                                    new_mod.append(m[0])
+                                    new_mod.append(triple[2])
+                                    found_mod = True
+
+                        if found_mod is True:
+                            mods.append(new_mod)
+                        else:
+                            new_mod = []
+                            new_mod.append(triple[1])
+                            new_mod.append(triple[2])
+                            mods.append(new_mod)
+
+                        # rectifing bindings vector
+                        for mod in mods:
+                            if mod[0] == triple[2]:
+                                mod[0] = triple[1]
+
+                    if self.VERBOSE is True:
+                        print('--------- conj ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "prt":
+
+                    PENDING_FOUND = False
+
+                    for pend in pendings:
+                        if self.get_first_token(pend[0]) == triple[1]:
+                            v = []
+                            v.append(pend[1])
+                            v.append(triple[2])
+                            var_list.append(v)
+                            PENDING_FOUND = True
+
+                    if PENDING_FOUND is False:
+                        # create an unreferrenced var
+                        v = []
+                        v.append('?')
+                        v.append(triple[2])
+                        var_list.append(v)
+
+                        #create a pending prt
+                        prt = []
+                        prt.append(triple[1])
+                        prt.append(triple[2])
+                        pending_prt.append(prt)
+
+
+                    if self.VERBOSE is True:
+                        print('--------- prt ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "dative":
+
+                    lemma_pure = self.get_lemma(triple[2])[:-2]
+                    if self.get_pos(triple[2]) == 'PRP' and lemma_pure not in self.BLACK_LIST_WORDS:
+
+                        # threated as adverb
+
+                        m = []
+                        m.append(triple[1])
+                        m.append(triple[2])
+                        adv_adj.append(m)
+
+                        # rectifing adv_adj vector
+                        for adv in adv_adj:
+                            if adv[0] == triple[2]:
+                                adv[0] = triple[1]
+
+                    elif lemma_pure not in self.BLACK_LIST_WORDS:
+                        # threated as preposition
+
+                        davidsonian_found = "UNASSIGNED"
+                        found_var = "UNASSIGNED"
+                        found_mod = "UNASSIGNED"
+                        d_found = False
+
+                        pending_prep.append(triple[2])
+
+                        # searching triple[1] in mods --- case oprd
+
+                        for m in mods:
+                            if m[1] == triple[1]:
+                                found_mod = m[0]
+
+                        for v in var_list:
+                            if v[1] == found_mod:
+                                found_var = v[0]
+
+                        for p in pendings:
+                            # case var
+                            if p[3] == found_var:
+                                davidsonian_found = p[1]
+                                d_found = True
+                            # case verb
+                            if p[0] == found_mod:
+                                davidsonian_found = p[1]
+                                d_found = True
+
+                        # searching triple[1] in compounds
+
+                        if d_found is False:
+                            for m in mods:
+                                if m[1] == triple[1]:
+                                    found_mod = m[0]
+                            for v in var_list:
+                                if v[1] == found_mod:
+                                    found_var = v[0]
+                            for p in pendings:
+                                if p[3] == found_var:
+                                    davidsonian_found = p[1]
+                                    d_found = True
+
+                        # searching triple[1] in pendings
+
+                        if d_found is False:
+                            for p in pendings:
+                                if self.get_first_token(p[0]) == triple[1] or self.get_first_token(p[0]) == found_mod:
+                                    davidsonian_found = p[1]
+                                    d_found = True
+
+                        if d_found is False:
+
+                            # retriving triple[1] from var_list
+
+                            for v in var_list:
+                                if v[1] == triple[1]:
+                                    found_var = v[0]
+
+                            # retriving related davidsonian from pendings and preps table
+
+                            for prep in preps:
+                                if prep[2] == found_var:
+                                    davidsonian_found = prep[1]
+
+                            for p in pendings:
+                                if p[3] == found_var or p[2] == found_var:
+                                    davidsonian_found = p[1]
+
+                        pending_prep.append(davidsonian_found)
+
+                        # updating var_list
+
+                        index_args_counter = index_args_counter + 1
+                        assignment = []
+                        assignment.append(var + str(index_args_counter))
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        pending_prep.append(var + str(index_args_counter))
+
+                    if self.VERBOSE is True:
+                        print('--------- dative ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                elif triple[0] == "advmod" or triple[0] == "mark" or triple[0] == "neg" or triple[0] == "npadvmod":
+
+                    # firstly adverb assumed to be cond
+                    m = []
+                    m.append(triple[1])
+                    m.append(triple[2])
+                    adv_adj.append(m)
+
+                    # rectifing adv_adj vector
+                    for adv in adv_adj:
+                        if adv[0] == triple[2]:
+                            adv[0] = triple[1]
+
+                    if self.VERBOSE is True:
+                        print('--------- advmod ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                else:
+
+                    print('\nDEPENDENCY NOT HANDLED: '+triple[0])
+
+        if len(adv_adj) > 0:
+
+            ADVERB_PROCESSED = []
+
+            #check for references in varlist
+            for i in range(len(adv_adj)):
+                for v in var_list:
+                    if adv_adj[i][0] == v[1]:
+                        mods.append(adv_adj[i])
+                        ADVERB_PROCESSED.append(adv_adj[i])
+
+            # check for references in mods
+            for i in range(len(adv_adj)):
+                if adv_adj[i] not in ADVERB_PROCESSED:
+                    for m in mods:
+                        if adv_adj[i][0] == m[1]:
+                            new_mod = []
+                            new_mod.append(m[0])
+                            new_mod.append(adv_adj[i][1])
+                            mods.append(new_mod)
+                            ADVERB_PROCESSED.append(adv_adj[i])
+
+            #check for references in preps
+            for i in range(len(adv_adj)):
+                if adv_adj[i] not in ADVERB_PROCESSED:
+                    for prep in preps:
+                        if adv_adj[i][0] in prep:
+                            v = []
+                            v.append(prep[1])
+                            v.append(adv_adj[i][1])
+                            var_list.append(v)
+                            ADVERB_PROCESSED.append(adv_adj[i])
+
+            # adding adverbials and/or conditionals
+            for p in pendings:
+                for i in range(len(adv_adj)):
+                    if adv_adj[i] not in ADVERB_PROCESSED:
+                        adv_pure = self.get_lemma(adv_adj[i][1])[:-2]
+                        if adv_pure not in self.BLACK_LIST_WORDS:
+                            if self.get_pos(adv_adj[i][1]) not in self.POS_FILTER:
+                                if adv_adj[i][0] == self.get_first_token(p[0]) or adv_adj[i][0] == self.get_last_token(p[0]):
+                                    if self.get_pos(adv_adj[i][1]) in self.adv_adj_POS:
+                                        v = []
+                                        v.append(p[1])
+                                        v.append(adv_adj[i][1])
+                                        var_list.append(v)
+
+                                    else:
+
+                                        #no deal with double conditionals (and aggregates) in the same utterance
+                                        if p[1] not in cond:
+                                            cond.append(p[1])
+                                            for pend in pendings:
+                                                if p[1] in pend or p[2] in pend or p[2] in pend:
+                                                    if pend[1] not in cond:
+                                                        cond.append(pend[1])
+
+                                        #looking for binding verbs in mods
+
+                                        for m in mods:
+                                            if m[0] == p[0]:
+                                                # getting mod's davidsonian
+                                                for m_pend in pendings:
+                                                    if m_pend[0] == m[1]:
+                                                        # not deal with double conditionals in the same utterance
+                                                        if m_pend[1] not in cond:
+                                                            cond.append(m_pend[1])
+
+            if self.VERBOSE is True:
+                print('--------- var_list/adverb/conditionals ----------')
+                print('var_list: ' + str(var_list))
+                print('adv_adj: ' + str(adv_adj))
+                print('COND: ' + str(cond))
+
+        # post-processing steps ----------------------
+
+        # adding reflective preposition without object
+        if len(pending_prep) > 0:
+            prep = []
+            prep.append(pending_prep[0])
+            prep.append(pending_prep[1])
+            prep.append(pending_prep[2])
+            preps.append(prep)
+
+        # rectifing compound vector
+        for c_est in compounds:
+            for v in var_list:
+                if v[1] == c_est[0]:
+                    for c_int in compounds:
+                        if c_int[0] == c_est[1]:
+                            c_int[0] = v[1]
+
+        # checking for interacting pending
+        for c in cond:
+            for p in pendings:
+                if p[1] == c:
+                    obj = p[3]
+            for p in pendings:
+                 if p[1] == obj:
+                     cond.append(obj)
+
+        TABLE = []
+        TABLE.append(pendings)
+        TABLE.append(var_list)
+        TABLE.append(preps)
+        TABLE.append(mods)
+        TABLE.append(compounds)
+        TABLE.append(cond)
+
+        return TABLE
+
+
+    def get_first_token(self, s):
+        s_list = s.split("_")
+        result = s_list[0]
+        return result
+
+
+    def get_last_token(self, s):
+        s_list = s.split("_")
+        if len(s_list) > 1:
+            return s_list[len(s_list)-1]
+        else:
+            return s_list[0]
+
+
+    def get_pos(self, s):
+        s_list = s.split(':')
+        if len(s_list) > 1:
+            return s_list[1]
+        else:
+            return s_list[0]
+
+
+    def get_lemma(self, s):
+        s_list = s.split('_')
+        if len(s_list) == 1:
+            result = s_list[0].split(":")[0]
+        else:
+            result = ""
+            for i in range(len(s_list)):
+                if i == 0:
+                    result = s_list[i].split(':')[0]
+                else:
+                    result = result +"_"+s_list[i].split(':')[0]
+        return result
+
+
+    def get_deps(self, input_text):
+
+        nlp = self.get_nlp_engine()
+        doc = nlp(input_text[0:len(input_text)])
+
+        deps = []
+        for token in doc:
+            new_triple = []
+            new_triple.append(token.dep_)
+
+            if token.head.lemma_ == '-PRON-':
+                new_triple.append(token.head.text + ':' + token.head.tag_)
+            else:
+                new_triple.append(token.head.lemma_ + ':' + token.head.tag_)
+
+            if token.lemma_ == '-PRON-':
+                new_triple.append(token.text + ':' + token.tag_)
+            else:
+                new_triple.append(token.lemma_ + ':' + token.tag_)
+            deps.append(new_triple)
+        return deps
+
+
+    def morph(self, sent):
+        sent_changed = ""
+        for c in sent:
+            if c in [':', '$', '.']:
+                sent_changed = sent_changed + "_"
+            else:
+                sent_changed = sent_changed + c
+        final_sent_changed = ""
+        sent_changed_splitted = sent_changed.split(" ")
+        for i in range(len(sent_changed_splitted)):
+            if sent_changed_splitted[i][0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                if i == 0:
+                    final_sent_changed = "N" + sent_changed_splitted[i]
+                else:
+                    final_sent_changed = final_sent_changed + " N" + sent_changed_splitted[i]
+            else:
+                if i == 0:
+                    final_sent_changed = sent_changed_splitted[i]
+                else:
+                    final_sent_changed = final_sent_changed + " " + sent_changed_splitted[i]
+
+        return final_sent_changed
+
+
+
+
+
+
+
+
+
+
+
+
