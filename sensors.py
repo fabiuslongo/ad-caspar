@@ -69,3 +69,52 @@ class Timer(Sensor):
             else:
                 self.assert_belief(TIMEOUT("ON"))
                 return
+
+
+
+"""
+BOT = None
+
+class Fabulos(Sensor):
+
+    def on_start(self):
+        global BOT
+        BOT = telegram.Bot("761251160:AAFI63ErogZxLFeS8X8ur6O1TxFjCjv1530")
+        self.update_id = None
+        self.msgs = [ ]
+
+    def sense(self):
+        global BOT
+        while True:
+            if self.msgs == []:
+                for m in BOT.get_updates(offset=self.update_id): #, timeout=10):
+                    if self.update_id is None:
+                        self.update_id = m.update_id
+                    self.update_id = self.update_id + 1
+                    if m.message:
+                        self.msgs.append(m)
+            if self.msgs == []:
+                continue
+            m = self.msgs[0]
+            del self.msgs[0]
+            print(m.message.text)
+            if m.message.text is None:
+                continue
+
+            message_data = m.message.text.lower().split()
+            message_data.insert(0, m.message.chat.id)
+            print(message_data)
+
+            self.assert_belief(message(m.message.chat.id, m.message.text))
+
+
+class Reply(Action):
+
+    def execute(self, *args):
+        m = []
+        sender = args[0]()
+        for v in args[1:]:
+            m.append(v())
+        message = " ".join(m)
+        BOT.sendMessage(sender, message)
+"""

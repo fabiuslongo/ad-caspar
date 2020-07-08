@@ -10,6 +10,9 @@ import time
 import datetime
 from difflib import SequenceMatcher
 
+import pymongo
+from bson.objectid import ObjectId
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -82,7 +85,8 @@ class go(Procedure): pass
 class w(Procedure): pass
 class l(Procedure): pass
 class r(Procedure): pass
-class s(Procedure): pass
+class hkb(Procedure): pass
+class lkb(Procedure): pass
 
 # initialize Clauses Kb
 class c(Procedure): pass
@@ -753,11 +757,48 @@ class new_clause(Action):
         mf = parser.morph(sentence)
         def_clause = expr(mf)
 
+        features = self.extract_features(sentence)
+        print("\nfeatures:", features)
+
         kb_fol.nested_tell(def_clause)
+
+        self.insert_clause_db(mf, features)
 
         end_time = time.time()
         assert_time = end_time - start_time
         print("\nAssert time: ", assert_time)
+
+
+    def extract_features(self, sent):
+        chunks = sent.split(" ")
+        def_chinks = []
+        for chu in chunks:
+            chinks = chu.split("(")
+            for chi in chinks:
+                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
+                    def_chinks.append(chi)
+        return def_chinks
+
+
+    def insert_clause_db(self, cls, feats):
+
+        host = "mongodb://localhost:27017/"
+
+        try:
+            client = pymongo.MongoClient(host)
+            db = client["ad-caspar"]
+            clauses = db["clauses"]
+
+            # creating new sentence
+            clause = {
+                "value": cls,
+                "features": feats
+                }
+            sentence_id = clauses.insert_one(clause).inserted_id
+            print("sentence_id: " + str(sentence_id))
+        except:
+             print("An exception occurred!")
+
 
 
 class reason(Action):
@@ -1513,9 +1554,25 @@ class feed_precross(Action):
 
 class show_fol_kb(Action):
     def execute(self):
-        print("\n" + str(len(kb_fol.clauses)) + " clauses in Clauses kb:\n")
+        print("\n" + str(len(kb_fol.clauses)) + " clauses in Higher Clauses kb:\n")
         for cls in kb_fol.clauses:
             print(cls)
+
+class show_lkb(Action):
+    def execute(self):
+
+        host = "mongodb://localhost:27017/"
+        client = pymongo.MongoClient(host)
+        db = client["ad-caspar"]
+        clauses = db["clauses"]
+
+        print("\nLower Clauses kb:")
+
+        myclauses = clauses.find()
+        for cls in myclauses:
+            print("\n")
+            print(cls['value'])
+            print(cls['features'])
 
 
 class clear_clauses_kb(Action):

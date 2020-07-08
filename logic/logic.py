@@ -314,7 +314,7 @@ class FolKB(KB):
 
 def nested_tell_inner(KB, clause):
     """ Assert a clause and, when lhs(clause) is not null, also a set of implications where lhs is clause
-        and rhs a derived clause pruducted by produce_clauses accordingly to a specific knowledge base."""
+        and rhs a derived clause producted by produce_clauses accordingly to a specific knowledge base."""
     if str(clause).find("==>") == -1:
         derived = []
         KB.produce_clauses(clause, derived)
@@ -322,8 +322,20 @@ def nested_tell_inner(KB, clause):
             if unify(clause, derived_clause) is None:
                 new_clause = str(clause) + " ==> " + str(derived_clause)
                 KB.tell(expr(new_clause))
+                new_features = extract_features(new_clause)
+                print("new_features:", new_features)
     KB.tell(clause)
 
+
+def extract_features(sent):
+    chunks = sent.split(" ")
+    def_chinks = []
+    for chu in chunks:
+        chinks = chu.split("(")
+        for chi in chinks:
+            if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
+                def_chinks.append(chi)
+    return def_chinks
 
 def expr_to_string(e):
     str = ""
