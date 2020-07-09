@@ -65,6 +65,12 @@ class ManageLKB(object):
         return x.deleted_count
 
 
+
+    def get_related_clauses(self, clause):
+
+        db = self.client["ad-caspar"]
+        clauses = db["clauses"]
+
     """
     def get_fol_from_db(self, id): 
 

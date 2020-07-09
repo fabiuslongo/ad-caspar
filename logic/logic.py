@@ -7,6 +7,7 @@ from utils import (
 import itertools
 import copy
 import configparser
+from lkb_manager import *
 
 # ______________________________________________________________________________
 
@@ -272,6 +273,11 @@ standardize_variables.counter = itertools.count()
 config = configparser.ConfigParser()
 config.read('config.ini')
 exec_occur_check = config.getboolean('REASONING', 'OCCUR_CHECK')
+HOST = config.get('LKB', 'HOST')
+LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
+
+# Lower Knowledge Base Manager
+lkbm = ManageLKB(HOST)
 
 # ______________________________________________________________________________
 
@@ -322,20 +328,11 @@ def nested_tell_inner(KB, clause):
             if unify(clause, derived_clause) is None:
                 new_clause = str(clause) + " ==> " + str(derived_clause)
                 KB.tell(expr(new_clause))
-                new_features = extract_features(new_clause)
-                print("new_features:", new_features)
+                if LKB_USAGE:
+                    lkbm.insert_clause_db(new_clause)
     KB.tell(clause)
 
 
-def extract_features(sent):
-    chunks = sent.split(" ")
-    def_chinks = []
-    for chu in chunks:
-        chinks = chu.split("(")
-        for chi in chinks:
-            if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
-                def_chinks.append(chi)
-    return def_chinks
 
 def expr_to_string(e):
     str = ""

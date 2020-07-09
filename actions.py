@@ -35,6 +35,7 @@ GEN_ADV = config.getboolean('GEN', 'GEN_ADV')
 GEN_EXTRA = config.getboolean('GEN', 'GEN_EXTRA')
 GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
 HOST = config.get('LKB', 'HOST')
+LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 
 parser = Parse(VERBOSE)
 
@@ -763,12 +764,12 @@ class new_clause(Action):
 
         kb_fol.nested_tell(def_clause)
 
-        lkbm.insert_clause_db(mf)
+        if LKB_USAGE:
+            lkbm.insert_clause_db(mf)
 
         end_time = time.time()
         assert_time = end_time - start_time
         print("\nAssert time: ", assert_time)
-
 
 
 class reason(Action):
@@ -804,6 +805,9 @@ class reason(Action):
             end_time2 = time.time()
             query_time2 = end_time2 - start_time
             print("\nQuery time: ", query_time2)
+
+        if nested_result is True and LKB_USAGE is True:
+            lkbm.get_related_clauses(q)
 
 
 class assert_command(Action):
