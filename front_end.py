@@ -48,8 +48,11 @@ go() >> [show_line("Starting AD-Caspar..."), set_wait(), HotwordDetect().start]
 hkb() >> [show_fol_kb()]
 # show lower Clauses kb
 lkb() >> [show_lkb()]
-# initialize Clauses Kb
-c() >> [clear_clauses_kb()]
+
+# initialize Higher Clauses Kb
+chkb() >> [clear_hkb()]
+# initialize Lower Clauses Kb
+clkb() >> [clear_lkb()]
 
 # Hotwords processing
 +HOTWORD_DETECTED("ON") / WAIT(W) >> [show_line("\n\nYes, I'm here!\n"), HotwordDetect().stop, UtteranceDetect().start, +WAKE("ON"), Timer(W).start]

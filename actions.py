@@ -10,8 +10,7 @@ import time
 import datetime
 from difflib import SequenceMatcher
 
-import pymongo
-from bson.objectid import ObjectId
+from lkb_manager import *
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -35,11 +34,15 @@ GEN_ADJ = config.getboolean('GEN', 'GEN_ADJ')
 GEN_ADV = config.getboolean('GEN', 'GEN_ADV')
 GEN_EXTRA = config.getboolean('GEN', 'GEN_EXTRA')
 GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
+HOST = config.get('LKB', 'HOST')
 
 parser = Parse(VERBOSE)
 
 # Clauses Knowledge Base instantion
 kb_fol = FolKB([])
+
+# Lower Knowledge Base Manager
+lkbm = ManageLKB(HOST)
 
 # FOl Reasoning procedures
 class aggr_adj(Procedure): pass
@@ -89,7 +92,8 @@ class hkb(Procedure): pass
 class lkb(Procedure): pass
 
 # initialize Clauses Kb
-class c(Procedure): pass
+class chkb(Procedure): pass
+class clkb(Procedure): pass
 
 # test assertions
 class t(Procedure): pass
@@ -757,47 +761,13 @@ class new_clause(Action):
         mf = parser.morph(sentence)
         def_clause = expr(mf)
 
-        features = self.extract_features(sentence)
-        print("\nfeatures:", features)
-
         kb_fol.nested_tell(def_clause)
 
-        self.insert_clause_db(mf, features)
+        lkbm.insert_clause_db(mf)
 
         end_time = time.time()
         assert_time = end_time - start_time
         print("\nAssert time: ", assert_time)
-
-
-    def extract_features(self, sent):
-        chunks = sent.split(" ")
-        def_chinks = []
-        for chu in chunks:
-            chinks = chu.split("(")
-            for chi in chinks:
-                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
-                    def_chinks.append(chi)
-        return def_chinks
-
-
-    def insert_clause_db(self, cls, feats):
-
-        host = "mongodb://localhost:27017/"
-
-        try:
-            client = pymongo.MongoClient(host)
-            db = client["ad-caspar"]
-            clauses = db["clauses"]
-
-            # creating new sentence
-            clause = {
-                "value": cls,
-                "features": feats
-                }
-            sentence_id = clauses.insert_one(clause).inserted_id
-            print("sentence_id: " + str(sentence_id))
-        except:
-             print("An exception occurred!")
 
 
 
@@ -1554,28 +1524,27 @@ class feed_precross(Action):
 
 class show_fol_kb(Action):
     def execute(self):
-        print("\n" + str(len(kb_fol.clauses)) + " clauses in Higher Clauses kb:\n")
         for cls in kb_fol.clauses:
             print(cls)
+        print("\n" + str(len(kb_fol.clauses)) + " clauses in Higher Knowledge Base")
+
 
 class show_lkb(Action):
     def execute(self):
-
-        host = "mongodb://localhost:27017/"
-        client = pymongo.MongoClient(host)
-        db = client["ad-caspar"]
-        clauses = db["clauses"]
-
-        print("\nLower Clauses kb:")
-
-        myclauses = clauses.find()
-        for cls in myclauses:
-            print("\n")
-            print(cls['value'])
-            print(cls['features'])
+        count = lkbm.show_LKB()
+        print("\n", count, " clauses in Lower Knowledge Base")
 
 
-class clear_clauses_kb(Action):
+class clear_hkb(Action):
     def execute(self):
-        print("\nClauses kb initialized.")
+        count = len(kb_fol.clauses)
+        print("\nHigher Clauses kb initialized.")
         kb_fol.clauses = []
+        print(count, " clauses deleted.")
+
+
+class clear_lkb(Action):
+    def execute(self):
+        count = lkbm.clear_lkb()
+        print("\nLower Clauses kb initialized.")
+        print(count, " clauses deleted.")
