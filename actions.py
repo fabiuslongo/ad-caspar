@@ -806,8 +806,10 @@ class reason(Action):
             query_time2 = end_time2 - start_time
             print("\nQuery time: ", query_time2)
 
-        if nested_result is True and LKB_USAGE is True:
-            lkbm.get_related_clauses(q)
+        if nested_result is False and bc_result is False:
+            new_clauses = lkbm.get_related_clauses(q)
+            for nc in new_clauses:
+                print(nc)
 
 
 class assert_command(Action):
