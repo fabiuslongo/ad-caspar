@@ -75,7 +75,7 @@ class Timer(Sensor):
 """
 BOT = None
 
-class Fabulos(Sensor):
+class Chatbot(Sensor):
 
     def on_start(self):
         global BOT

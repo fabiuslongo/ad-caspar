@@ -832,6 +832,10 @@ class reason(Action):
             else:
                 print("\nResult: ", nested_result)
 
+        # emptying Higher KB
+        kb_fol.clauses = []
+
+
 
     def extract_features(self, sent):
         chunks = sent.split(" ")
