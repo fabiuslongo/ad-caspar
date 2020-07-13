@@ -34,8 +34,8 @@ r() >> [+STT("reason")]
 s1() >> [simulate_sensor("be", "time", "12.00")]
 s2() >> [simulate_sensor("be", "temperature", "25")]
 
-# test assertions
-t() >> [go(), w(), l()]
+# test reasoning
+t() >> [go(), w(), r()]
 
 
 

@@ -87,7 +87,7 @@ class ManageLKB(object):
         new_clauses = []
         for a in aggr:
             occurrencies = a['_id']
-            confidence = int(feat_num) / int(occurrencies)
+            confidence = int(occurrencies) / int(feat_num)
             print("confidence: ", confidence, "\n")
             new_clauses = a['group']
         return new_clauses

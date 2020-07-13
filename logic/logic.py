@@ -314,6 +314,7 @@ class FolKB(KB):
     def nested_ask(self, goal, candidates):
         return nested_ask_inner(self, goal, candidates)
 
+
     def nested_tell(self, clause):
         return nested_tell_inner(self, clause)
 
@@ -373,7 +374,7 @@ def produce_clauses_inner(KB, clause, derived):
 
 def nested_ask_inner(KB, goal, candidates):
     """Checks if a single positive literal taken as query can be considered true 
-    accordingly to the clauses contained in a knowledge base also 
+    accordingly to the clauses contained in the HIGHER knowledge base also
     taking in account all the possible candidates that can be derived from
     the original query through unifications and substitutions."""
     for clause in KB.clauses:
@@ -400,6 +401,7 @@ def nested_ask_inner(KB, goal, candidates):
                     else:
                         return nested_ask_inner(KB, new_candidate, candidates)
     return False
+
 
 
 

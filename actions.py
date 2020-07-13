@@ -36,6 +36,7 @@ GEN_EXTRA = config.getboolean('GEN', 'GEN_EXTRA')
 GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
 HOST = config.get('LKB', 'HOST')
 LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
+MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
 
 parser = Parse(VERBOSE)
 
@@ -776,14 +777,15 @@ class reason(Action):
 
     def execute(self, *args):
         definite_clause = args[0]()
-
         start_time = time.time()
 
         q = parser.morph(definite_clause)
         print("Query: " + q)
         print("OCCUR_CHECK: ", exec_occur_check)
 
+        results = []
         bc_result = kb_fol.ask(expr(q))
+        results.append(bc_result)
         print("\n ---- NOMINAL REASONING ---\n")
         print("Result: " + str(bc_result))
 
@@ -791,12 +793,13 @@ class reason(Action):
         query_time1 = end_time1 - start_time
         print("Backward-Chaining Query time: ", query_time1)
 
+        candidates = []
+
         if bc_result is False:
 
             print("\n\n ---- NESTED REASONING ---")
-            candidates = []
-
             nested_result = kb_fol.nested_ask(expr(q), candidates)
+            results.append(nested_result)
             if nested_result is None:
                 print("\nClause present in kb. No substitutions needed.")
             else:
@@ -806,10 +809,72 @@ class reason(Action):
             query_time2 = end_time2 - start_time
             print("\nQuery time: ", query_time2)
 
-        if nested_result is False and bc_result is False:
-            new_clauses = lkbm.get_related_clauses(q)
-            for nc in new_clauses:
-                print(nc)
+
+        if not all(results):
+
+            print("\nq: ", q)
+
+            aggregated_clauses = self.populate_hkb(q, [])
+
+            print("\ndefinitive asserted clauses: ")
+            print("count: ", len(aggregated_clauses), "\n")
+            for a in aggregated_clauses:
+                kb_fol.tell(expr(a))
+
+            print("\n\n ---- Backward-Chaining REASONING from Mongo---")
+            bc_result = kb_fol.ask(expr(q))
+            print("\nResult: ", bc_result)
+
+            print("\n\n ---- NESTED REASONING from Mongo---")
+            nested_result = kb_fol.nested_ask(expr(q), candidates)
+            results.append(nested_result)
+            if nested_result is None:
+                print("\nClause present in kb. No substitutions needed.")
+            else:
+                print("\nResult: ", nested_result)
+
+
+    def extract_features(self, sent):
+        chunks = sent.split(" ")
+        def_chinks = []
+        for chu in chunks:
+            chinks = chu.split("(")
+            for chi in chinks:
+                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
+                    def_chinks.append(chi)
+        return def_chinks
+
+
+    def populate_hkb(self, cls, aggregated_clauses):
+
+        client = pymongo.MongoClient(HOST)
+        db = client["ad-caspar"]
+        features = self.extract_features(cls)
+        feat_num = len(features)
+
+        aggr = db.clauses.aggregate([
+            {"$project": {
+                "value": 1,
+                "intersection": {"$size": {"$setIntersection": ["$features", features]}}
+            }},
+            {"$group":
+                 {"_id": "$intersection",
+                  "group": {"$push": "$value"}}},
+            {"$sort": {"_id": -1}},
+            {"$limit": 2}
+        ])
+
+        for a in aggr:
+            occurrencies = a['_id']
+            confidence = int(occurrencies) / int(feat_num)
+            clauses = a['group']
+            for c in clauses:
+                if confidence != 1.0 and c not in aggregated_clauses and confidence > MIN_CONFIDENCE:
+                    aggregated_clauses.append(c)
+                    self.populate_hkb(c, aggregated_clauses)
+                    print("\naggregated: ", c)
+                    print("confidence: ", confidence)
+        return aggregated_clauses
 
 
 class assert_command(Action):
