@@ -66,31 +66,6 @@ class ManageLKB(object):
 
 
 
-    def get_related_clauses(self, cls):
-
-        db = self.client["ad-caspar"]
-        features = self.extract_features(cls)
-        feat_num = len(features)
-
-        aggr = db.clauses.aggregate([
-            {"$project": {
-                "value": 1,
-                "intersection": {"$size": {"$setIntersection": ["$features", features]}}
-            }},
-            {"$group":
-                 {"_id": "$intersection",
-                  "group": {"$push": "$value"}}},
-            {"$sort": {"_id": -1}},
-            {"$limit": 1}
-        ])
-
-        new_clauses = []
-        for a in aggr:
-            occurrencies = a['_id']
-            confidence = int(occurrencies) / int(feat_num)
-            print("confidence: ", confidence, "\n")
-            new_clauses = a['group']
-        return new_clauses
 
 
 

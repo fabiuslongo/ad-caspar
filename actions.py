@@ -810,22 +810,21 @@ class reason(Action):
             print("\nQuery time: ", query_time2)
 
 
-        if not all(results):
+        if not all(results) and LKB_USAGE:
 
             print("\nq: ", q)
 
             aggregated_clauses = self.populate_hkb(q, [])
 
-            print("\ndefinitive asserted clauses: ")
-            print("count: ", len(aggregated_clauses), "\n")
+            print("\nnumber asserted clauses: ", len(aggregated_clauses))
             for a in aggregated_clauses:
                 kb_fol.tell(expr(a))
 
-            print("\n\n ---- Backward-Chaining REASONING from Mongo---")
+            print("\n\n ---- Backward-Chaining REASONING from Lower KB ---")
             bc_result = kb_fol.ask(expr(q))
             print("\nResult: ", bc_result)
 
-            print("\n\n ---- NESTED REASONING from Mongo---")
+            print("\n\n ---- NESTED REASONING from Lower KB ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
             results.append(nested_result)
             if nested_result is None:
