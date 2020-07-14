@@ -37,6 +37,7 @@ GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
 HOST = config.get('LKB', 'HOST')
 LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
+EMPTY_HKB_AFTER_REASONING = config.getboolean('LKB', 'EMPTY_HKB_AFTER_REASONING')
 
 parser = Parse(VERBOSE)
 
@@ -805,16 +806,11 @@ class reason(Action):
             else:
                 print("\nResult: ", nested_result)
 
-            end_time2 = time.time()
-            query_time2 = end_time2 - start_time
-            print("\nQuery time: ", query_time2)
-
-
         if not all(results) and LKB_USAGE:
 
             print("\nq: ", q)
 
-            aggregated_clauses = self.populate_hkb(q, [])
+            aggregated_clauses = lkbm.aggregate_clauses(q, [], MIN_CONFIDENCE)
 
             print("\nnumber asserted clauses: ", len(aggregated_clauses))
             for a in aggregated_clauses:
@@ -832,52 +828,13 @@ class reason(Action):
             else:
                 print("\nResult: ", nested_result)
 
-        # emptying Higher KB
-        kb_fol.clauses = []
+            # emptying Higher KB
+            if EMPTY_HKB_AFTER_REASONING:
+                kb_fol.clauses = []
 
-
-
-    def extract_features(self, sent):
-        chunks = sent.split(" ")
-        def_chinks = []
-        for chu in chunks:
-            chinks = chu.split("(")
-            for chi in chinks:
-                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
-                    def_chinks.append(chi)
-        return def_chinks
-
-
-    def populate_hkb(self, cls, aggregated_clauses):
-
-        client = pymongo.MongoClient(HOST)
-        db = client["ad-caspar"]
-        features = self.extract_features(cls)
-        feat_num = len(features)
-
-        aggr = db.clauses.aggregate([
-            {"$project": {
-                "value": 1,
-                "intersection": {"$size": {"$setIntersection": ["$features", features]}}
-            }},
-            {"$group":
-                 {"_id": "$intersection",
-                  "group": {"$push": "$value"}}},
-            {"$sort": {"_id": -1}},
-            {"$limit": 2}
-        ])
-
-        for a in aggr:
-            occurrencies = a['_id']
-            confidence = int(occurrencies) / int(feat_num)
-            clauses = a['group']
-            for c in clauses:
-                if confidence != 1.0 and c not in aggregated_clauses and confidence > MIN_CONFIDENCE:
-                    aggregated_clauses.append(c)
-                    self.populate_hkb(c, aggregated_clauses)
-                    print("\naggregated: ", c)
-                    print("confidence: ", confidence)
-        return aggregated_clauses
+        end_time2 = time.time()
+        query_time2 = end_time2 - start_time
+        print("\nQuery time: ", query_time2)
 
 
 class assert_command(Action):
