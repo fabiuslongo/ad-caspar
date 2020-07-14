@@ -784,9 +784,7 @@ class reason(Action):
         print("Query: " + q)
         print("OCCUR_CHECK: ", exec_occur_check)
 
-        results = []
         bc_result = kb_fol.ask(expr(q))
-        results.append(bc_result)
         print("\n ---- NOMINAL REASONING ---\n")
         print("Result: " + str(bc_result))
 
@@ -795,18 +793,18 @@ class reason(Action):
         print("Backward-Chaining Query time: ", query_time1)
 
         candidates = []
+        nested_result = False
 
         if bc_result is False:
 
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
-            results.append(nested_result)
             if nested_result is None:
                 print("\nClause present in kb. No substitutions needed.")
             else:
                 print("\nResult: ", nested_result)
 
-        if not all(results) and LKB_USAGE:
+        if LKB_USAGE and bc_result is False and nested_result is False:
 
             print("\nq: ", q)
 
@@ -822,7 +820,7 @@ class reason(Action):
 
             print("\n\n ---- NESTED REASONING from Lower KB ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
-            results.append(nested_result)
+
             if nested_result is None:
                 print("\nClause present in kb. No substitutions needed.")
             else:
