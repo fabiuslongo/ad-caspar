@@ -818,13 +818,23 @@ class reason(Action):
             bc_result = kb_fol.ask(expr(q))
             print("\nResult: ", bc_result)
 
-            print("\n\n ---- NESTED REASONING from Lower KB ---")
-            nested_result = kb_fol.nested_ask(expr(q), candidates)
+            if bc_result is False:
+                print("\n\n ---- NESTED REASONING from Lower KB ---")
+                nested_result = kb_fol.nested_ask(expr(q), candidates)
 
-            if nested_result is None:
-                print("\nClause present in kb. No substitutions needed.")
-            else:
-                print("\nResult: ", nested_result)
+                if nested_result is None:
+                    print("\nClause present in kb. No substitutions needed.")
+                else:
+                    print("\nResult: ", nested_result)
+
+            reason_keys = lkbm.get_last_keys()
+            print("\nreason keys:", reason_keys)
+            lkbm.reset_last_keys()
+
+            confidence = lkbm.get_confidence()
+            print("Initial confidence:", confidence)
+            lkbm.reset_confidence()
+
 
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:

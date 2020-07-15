@@ -6,6 +6,35 @@ class ManageLKB(object):
 
         self.host = host
         self.client = pymongo.MongoClient(self.host)
+        self.reason_keys = []
+        self.confidence = 0.0
+
+
+    def set_confidence(self, confidence):
+        if self.confidence == 0.0:
+            self.confidence = confidence
+
+
+    def get_confidence(self):
+        return self.confidence
+
+
+    def reset_confidence(self):
+        self.confidence = 0.0
+
+
+
+    def add_reason_keys(self, keys):
+        if len(self.reason_keys) == 0:
+            self.reason_keys.extend(keys)
+
+
+    def reset_last_keys(self):
+        self.reason_keys = []
+
+
+    def get_last_keys(self):
+        return self.reason_keys
 
 
     def insert_clause_db(self, cls):
@@ -83,12 +112,12 @@ class ManageLKB(object):
 
         aggr = db.clauses.aggregate([
             {"$project": {
-                "value": 1,
+                "value": 1, "_id": 1,
                 "intersection": {"$size": {"$setIntersection": ["$features", features]}}
             }},
             {"$group":
                  {"_id": "$intersection",
-                  "group": {"$push": "$value"}}},
+                  "group1": {"$push": "$value"}, "group2": {"$push": "$_id"}}},
             {"$sort": {"_id": -1}},
             {"$limit": 2}
         ])
@@ -96,7 +125,9 @@ class ManageLKB(object):
         for a in aggr:
             occurrencies = a['_id']
             confidence = int(occurrencies) / int(feat_num)
-            clauses = a['group']
+            clauses = a['group1']
+            self.set_confidence(confidence)
+            self.add_reason_keys(a['group2'])
             for c in clauses:
                 if c not in aggregated_clauses and confidence > min_confidence:
                     aggregated_clauses.append(c)
