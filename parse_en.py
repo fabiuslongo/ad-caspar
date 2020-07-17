@@ -29,6 +29,46 @@ class Parse(object):
         else:
             os.system('clear')
 
+        # enable cache usage
+        self.FLUSH = True
+
+        # last dependencies
+        self.last_deps = []
+
+        # last uniquezed dependencies
+        self.last_m_deps = []
+
+
+    def set_last_m_deps(self, m_deps):
+        self.last_m_deps = m_deps[:]
+
+
+    def get_last_m_deps(self):
+        return self.last_m_deps
+
+
+    def set_last_deps(self, deps):
+        self.last_deps = deps[:]
+
+
+    def get_last_deps(self):
+        return self.last_deps
+
+
+    def get_flush(self):
+        return self.FLUSH
+
+
+    def flush(self):
+        self.FLUSH = True
+        self.last_deps = []
+        self.last_m_deps = []
+
+
+    def no_flush(self):
+        self.FLUSH = False
+
+
     def get_nlp_engine(self):
         return self.nlp
 
@@ -1270,6 +1310,7 @@ class Parse(object):
             else:
                 new_triple.append(token.lemma_ + ':' + token.tag_)
             deps.append(new_triple)
+
         return deps
 
 

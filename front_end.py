@@ -35,7 +35,7 @@ s1() >> [simulate_sensor("be", "time", "12.00")]
 s2() >> [simulate_sensor("be", "temperature", "25")]
 
 # test reasoning
-t() >> [go(), w(), r()]
+t() >> [go(), w(), l()]
 
 
 
@@ -70,7 +70,7 @@ process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_R
 # Generalization assertion
 new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
-new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start]
+new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
 
 
 # Reactive Reasoning

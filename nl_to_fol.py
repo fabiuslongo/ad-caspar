@@ -1,5 +1,6 @@
 from uniquelizer import *
 from nltk.corpus import wordnet
+import copy
 
 
 
@@ -10,9 +11,6 @@ class ManageFols(object):
         # Original sources
         self.sentences = []
 
-        # Preliminary Knowledge base
-        self.PKB = []
-
         self.VERBOSE = VERBOSE
 
         self.NEG_SYNS = ['no.r.01', 'no.r.02', 'no.r.03', 'not.r.01']
@@ -20,14 +18,26 @@ class ManageFols(object):
 
         self.language = language
 
+        self.last_fol = []
 
-    def get_PKB(self):
-        return self.PKB
+        # enable cache usage
+        self.FLUSH = True
 
 
-    def add_PKB(self, element):
-        self.PKB.append(element)
+    def set_last_fol(self, fol):
+        self.last_fol = copy.deepcopy(fol)
 
+    def get_last_fol(self):
+        return copy.deepcopy(self.last_fol)
+
+
+    def flush(self):
+        self.FLUSH = True
+        self.last_fol = []
+
+
+    def no_flush(self):
+        self.FLUSH = False
 
 
     def get_pos(self, s):
@@ -638,6 +648,7 @@ class ManageFols(object):
 
 
     def build_isa_fol(self, fol, deps):
+
         isa_fol = []
         isa_term = ""
         subj = ""
@@ -702,6 +713,10 @@ class ManageFols(object):
         isa_fol.append(rhs)
 
         return isa_fol
+
+
+
+
 
 
     def createPKB(self, source, parser, language):
@@ -874,6 +889,7 @@ class ManageFols(object):
 
 
     def isa_fol_to_clause(self, isa_fol):
+
         new_isa_fol = []
         subj_var = isa_fol[1][2]
         obj_var = isa_fol[1][3]

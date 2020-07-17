@@ -40,6 +40,7 @@ MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
 EMPTY_HKB_AFTER_REASONING = config.getboolean('LKB', 'EMPTY_HKB_AFTER_REASONING')
 
 parser = Parse(VERBOSE)
+fol_manager = ManageFols(VERBOSE, LANGUAGE)
 
 # Clauses Knowledge Base instantion
 kb_fol = FolKB([])
@@ -93,6 +94,8 @@ class l(Procedure): pass
 class r(Procedure): pass
 class hkb(Procedure): pass
 class lkb(Procedure): pass
+class flush(Procedure): pass
+
 
 # initialize Clauses Kb
 class chkb(Procedure): pass
@@ -272,43 +275,61 @@ class preprocess_clause(Action):
 
         self.MAIN_NEG_PRESENT = False
 
-        print("\n" + sentence)
-        deps = parser.get_deps(sentence)
 
-        for i in range(len(deps)):
-            governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
-            dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
-            deps[i] = [deps[i][0], governor, dependent]
+        if parser.get_flush() is False:
 
-        # Dependencies Uniquezation
-        Ren = Uniquelizer(VERBOSE, LANGUAGE)
-        m_deps = Ren.morph_deps(deps)
-        print("\n" + str(m_deps))
+            print("USING CACHE....................................................")
+            deps = parser.get_last_deps()
+            m_deps = parser.get_last_m_deps()
+            print("\n" + str(m_deps))
 
-        MST = parser.create_MST(m_deps, 'e', 'x')
-        print("\nMST: \n" + str(MST))
+            vect_LR_fol = fol_manager.get_last_fol()
 
-        # MST varlist correction on cases of adj-obj
-        for v in MST[1]:
-            if self.get_pos(v[1]) in ['JJ', 'JJR', 'JJS']:
-                old_value = v[1]
-                new_value = self.get_lemma(v[1]) + ":NNP"
-                v[1] = new_value
-                for b in MST[3]:
-                    if b[0] == old_value:
-                        b[0] = new_value
+        else:
 
-        m = ManageFols(VERBOSE, LANGUAGE)
-        vect_LR_fol = m.build_LR_fol(MST, 'e')
+            print("\n" + sentence)
+            deps = parser.get_deps(sentence)
+            parser.set_last_deps(deps)
+
+
+            for i in range(len(deps)):
+                governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
+                dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
+                deps[i] = [deps[i][0], governor, dependent]
+
+            # Dependencies Uniquezation
+            Ren = Uniquelizer(VERBOSE, LANGUAGE)
+            m_deps = Ren.morph_deps(deps)
+            print("\n" + str(m_deps))
+            parser.set_last_m_deps(m_deps)
+
+            MST = parser.create_MST(m_deps, 'e', 'x')
+            print("\nMST: \n" + str(MST))
+
+            # MST varlist correction on cases of adj-obj
+            for v in MST[1]:
+                if self.get_pos(v[1]) in ['JJ', 'JJR', 'JJS']:
+                    old_value = v[1]
+                    new_value = self.get_lemma(v[1]) + ":NNP"
+                    v[1] = new_value
+                    for b in MST[3]:
+                        if b[0] == old_value:
+                            b[0] = new_value
+
+            vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
+            fol_manager.set_last_fol(vect_LR_fol)
+
+            parser.no_flush()
+            fol_manager.no_flush()
 
         print("\nBefore dealing case:\n" + str(vect_LR_fol))
 
         if type == "NOMINAL":
             # NOMINAL CASE
-            CHECK_IMPLICATION = m.check_implication(vect_LR_fol)
+            CHECK_IMPLICATION = fol_manager.check_implication(vect_LR_fol)
             if not CHECK_IMPLICATION:
                 if ASSIGN_RULES_ADMITTED:
-                    check_isa = m.check_for_rule(m_deps, vect_LR_fol)
+                    check_isa = fol_manager.check_for_rule(m_deps, vect_LR_fol)
                     if check_isa:
                         self.assert_belief(IS_RULE(sentence))
                 dclause = vect_LR_fol[:]
@@ -327,10 +348,10 @@ class preprocess_clause(Action):
                 else:
                     positive_vect_LR_fol.append(v)
 
-            vect_LR_fol_plus_isa = m.build_isa_fol(positive_vect_LR_fol, m_deps)
-            dclause = m.isa_fol_to_clause(vect_LR_fol_plus_isa)
+            vect_LR_fol_plus_isa = fol_manager.build_isa_fol(positive_vect_LR_fol, m_deps)
+            dclause = fol_manager.isa_fol_to_clause(vect_LR_fol_plus_isa)
 
-        print("\nAfter dealing case:\n" + str(dclause))
+        print("\nAfter dealing case:\n", dclause)
 
         # IMPLICATION CASES
         if dclause[1][0] == "==>":
@@ -818,6 +839,8 @@ class reason(Action):
             bc_result = kb_fol.ask(expr(q))
             print("\nResult: ", bc_result)
 
+            candidates = []
+
             if bc_result is False:
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
@@ -834,6 +857,7 @@ class reason(Action):
             confidence = lkbm.get_confidence()
             print("Initial confidence:", confidence)
             lkbm.reset_confidence()
+            print("\ncandidates: ", candidates)
 
 
             # emptying Higher KB
@@ -1587,3 +1611,9 @@ class clear_lkb(Action):
         count = lkbm.clear_lkb()
         print("\nLower Clauses kb initialized.")
         print(count, " clauses deleted.")
+
+class flush(Action):
+    def execute(self):
+        parser.flush()
+        fol_manager.flush()
+
