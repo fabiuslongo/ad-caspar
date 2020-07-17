@@ -15,10 +15,10 @@ d1() >> [+STT("set the cooler at 27 degrees in the bedroom")]
 d2() >> [+STT("turn off the lights in the living room")]
 
 # definite clauses for reasoning purposes
-c1() >> [+STT("Nono is an hostile nation")]
+c1() >> [+STT("Cuba is an hostile nation")]
 c2() >> [+STT("Colonel West is American")]
 c3() >> [+STT("missiles are weapons")]
-c4() >> [+STT("Colonel West sells missiles to Nono")]
+c4() >> [+STT("Colonel West sells missiles to Cuba")]
 c5() >> [+STT("When an American sells weapons to a hostile nation, that American is a criminal")]
 
 # Query

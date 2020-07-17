@@ -284,12 +284,16 @@ class preprocess_clause(Action):
             print("\n" + str(m_deps))
 
             vect_LR_fol = fol_manager.get_last_fol()
+            ner = parser.get_last_ner()
+            print("\nner: ", ner)
 
         else:
 
             print("\n" + sentence)
             deps = parser.get_deps(sentence)
             parser.set_last_deps(deps)
+            ner = parser.get_last_ner()
+            print("\nner: ", ner)
 
 
             for i in range(len(deps)):
@@ -784,11 +788,12 @@ class new_clause(Action):
         print("\n" + sentence)
         mf = parser.morph(sentence)
         def_clause = expr(mf)
+        ner = parser.get_last_ner()
 
-        kb_fol.nested_tell(def_clause)
+        kb_fol.nested_tell(def_clause, ner)
 
         if LKB_USAGE:
-            lkbm.insert_clause_db(mf)
+            lkbm.insert_clause_db(mf, ner)
 
         end_time = time.time()
         assert_time = end_time - start_time
@@ -1611,6 +1616,7 @@ class clear_lkb(Action):
         count = lkbm.clear_lkb()
         print("\nLower Clauses kb initialized.")
         print(count, " clauses deleted.")
+
 
 class flush(Action):
     def execute(self):

@@ -37,7 +37,7 @@ class ManageLKB(object):
         return self.reason_keys
 
 
-    def insert_clause_db(self, cls):
+    def insert_clause_db(self, cls, ner):
 
         db = self.client["ad-caspar"]
         clauses = db["clauses"]
@@ -49,7 +49,8 @@ class ManageLKB(object):
 
             clause = {
                 "value": cls,
-                "features": features
+                "features": features,
+                "ner": ner
                 }
             sentence_id = clauses.insert_one(clause).inserted_id
             print("sentence_id: " + str(sentence_id))
@@ -81,6 +82,7 @@ class ManageLKB(object):
             print("\n")
             print(cls['value'])
             print(cls['features'])
+            print(cls['ner'])
         return myclauses.count()
 
 

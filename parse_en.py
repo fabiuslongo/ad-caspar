@@ -38,9 +38,16 @@ class Parse(object):
         # last uniquezed dependencies
         self.last_m_deps = []
 
+        # last detected entities
+        self.ner = []
+
+
+    def get_last_ner(self):
+        return self.ner
+
 
     def set_last_m_deps(self, m_deps):
-        self.last_m_deps = m_deps[:]
+        self.last_m_deps = m_deps
 
 
     def get_last_m_deps(self):
@@ -48,7 +55,7 @@ class Parse(object):
 
 
     def set_last_deps(self, deps):
-        self.last_deps = deps[:]
+        self.last_deps = deps
 
 
     def get_last_deps(self):
@@ -63,6 +70,7 @@ class Parse(object):
         self.FLUSH = True
         self.last_deps = []
         self.last_m_deps = []
+        self.ner = []
 
 
     def no_flush(self):
@@ -1295,6 +1303,10 @@ class Parse(object):
         nlp = self.get_nlp_engine()
         doc = nlp(input_text[0:len(input_text)])
 
+        for X in doc.ents:
+            ent = X.label_ + "('" + X.text + "')"
+            self.ner.append(ent)
+
         deps = []
         for token in doc:
             new_triple = []
@@ -1312,6 +1324,7 @@ class Parse(object):
             deps.append(new_triple)
 
         return deps
+
 
 
     def morph(self, sent):
