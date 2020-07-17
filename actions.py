@@ -790,7 +790,7 @@ class new_clause(Action):
         def_clause = expr(mf)
         ner = parser.get_last_ner()
 
-        kb_fol.nested_tell(def_clause, ner)
+        kb_fol.nested_tell(def_clause, [])
 
         if LKB_USAGE:
             lkbm.insert_clause_db(mf, ner)
