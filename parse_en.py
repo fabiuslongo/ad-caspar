@@ -1304,7 +1304,7 @@ class Parse(object):
         doc = nlp(input_text[0:len(input_text)])
 
         for X in doc.ents:
-            ent = X.label_ + "('" + X.text + "')"
+            ent = "("+X.label_ + ", " + X.text + ")"
             self.ner.append(ent)
 
         deps = []

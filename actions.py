@@ -320,6 +320,10 @@ class preprocess_clause(Action):
                         if b[0] == old_value:
                             b[0] = new_value
 
+                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner:
+                    v[1] = self.get_lemma(v[1])+":RB"
+
+
             vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
             fol_manager.set_last_fol(vect_LR_fol)
 
