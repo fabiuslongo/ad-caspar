@@ -1,8 +1,11 @@
 from phidias.Types import *
 import threading
 import time
+import telegram
+
 
 class TIMEOUT(Reactor): pass
+class message(Reactor): pass
 
 
 class HotwordDetect(Sensor):
@@ -71,15 +74,11 @@ class Timer(Sensor):
                 return
 
 
-
-"""
-BOT = None
-
 class Chatbot(Sensor):
 
     def on_start(self):
         global BOT
-        BOT = telegram.Bot("761251160:AAFI63ErogZxLFeS8X8ur6O1TxFjCjv1530")
+        BOT = telegram.Bot("1280923336:AAFi6ZVoF6LjJcoYueSuyXDa7Z4l8QAaYTA")
         self.update_id = None
         self.msgs = [ ]
 
@@ -87,7 +86,7 @@ class Chatbot(Sensor):
         global BOT
         while True:
             if self.msgs == []:
-                for m in BOT.get_updates(offset=self.update_id): #, timeout=10):
+                for m in BOT.get_updates(offset=self.update_id, timeout=10):
                     if self.update_id is None:
                         self.update_id = m.update_id
                     self.update_id = self.update_id + 1
@@ -117,4 +116,3 @@ class Reply(Action):
             m.append(v())
         message = " ".join(m)
         BOT.sendMessage(sender, message)
-"""

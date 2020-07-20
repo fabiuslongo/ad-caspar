@@ -42,7 +42,9 @@ t() >> [go(), w(), l()]
 # Front-End STT
 
 # Start agent command
-go() >> [show_line("Starting AD-Caspar..."), set_wait(), HotwordDetect().start]
+go() >> [show_line("Starting AD-Caspar..."), Chatbot().start]
+#go() >> [show_line("Starting AD-Caspar..."), Chatbot().start, set_wait(), HotwordDetect().start]
+
 
 # show higher Clauses kb
 hkb() >> [show_fol_kb()]
@@ -53,6 +55,9 @@ lkb() >> [show_lkb()]
 chkb() >> [clear_hkb()]
 # initialize Lower Clauses Kb
 clkb() >> [clear_lkb()]
+
+# managing bot beliefs
++message(C, "hello") >> [Reply(C, "Hello! ;-)")]
 
 # Hotwords processing
 +HOTWORD_DETECTED("ON") / WAIT(W) >> [show_line("\n\nYes, I'm here!\n"), HotwordDetect().stop, UtteranceDetect().start, +WAKE("ON"), Timer(W).start]

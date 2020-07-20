@@ -48,6 +48,10 @@ kb_fol = FolKB([])
 # Lower Knowledge Base Manager
 lkbm = ManageLKB(HOST)
 
+# Telegram bot
+BOT = None
+
+
 # FOl Reasoning procedures
 class aggr_adj(Procedure): pass
 class aggr_adv(Procedure): pass
@@ -295,7 +299,6 @@ class preprocess_clause(Action):
             ner = parser.get_last_ner()
             print("\nner: ", ner)
 
-
             for i in range(len(deps)):
                 governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
                 dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
@@ -310,8 +313,8 @@ class preprocess_clause(Action):
             MST = parser.create_MST(m_deps, 'e', 'x')
             print("\nMST: \n" + str(MST))
 
-            # MST varlist correction on cases of adj-obj
             for v in MST[1]:
+                # MST varlist correction on cases of adj-obj
                 if self.get_pos(v[1]) in ['JJ', 'JJR', 'JJS']:
                     old_value = v[1]
                     new_value = self.get_lemma(v[1]) + ":NNP"
@@ -320,6 +323,7 @@ class preprocess_clause(Action):
                         if b[0] == old_value:
                             b[0] = new_value
 
+                # leveraging NER for adverbs detection
                 if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner:
                     v[1] = self.get_lemma(v[1])+":RB"
 
