@@ -1,7 +1,4 @@
 from phidias.Main import *
-from phidias.Types import *
-
-def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', "D", "I", "V", "L", "O", "E", "U", "C")
 
 from front_end import *
 from def_cls_builder import *

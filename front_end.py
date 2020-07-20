@@ -38,6 +38,8 @@ s2() >> [simulate_sensor("be", "temperature", "25")]
 t() >> [go(), w(), l()]
 
 
+def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', 'D', 'I', 'V', 'L', 'O', 'E', 'U', 'C')
+
 
 # Front-End STT
 
@@ -58,6 +60,9 @@ clkb() >> [clear_lkb()]
 
 # managing bot beliefs
 +message(C, "hello") >> [Reply(C, "Hello! ;-)")]
++message(C, X) / check_last_char(X, ".") >> [Reply(C, "Assertion detected")]
++message(C, X) / check_last_char(X, "?") >> [Reply(C, "Question detected")]
+
 
 # Hotwords processing
 +HOTWORD_DETECTED("ON") / WAIT(W) >> [show_line("\n\nYes, I'm here!\n"), HotwordDetect().stop, UtteranceDetect().start, +WAKE("ON"), Timer(W).start]

@@ -1631,3 +1631,15 @@ class flush(Action):
         parser.flush()
         fol_manager.flush()
 
+
+class check_last_char(ActiveBelief):
+    def evaluate(self, x, y):
+
+        var = str(x).split("'")[3]
+        c = str(y).split("'")[1]
+
+        # Check final dot
+        if var[len(var)-1] == c:
+            return True
+        else:
+            return False
