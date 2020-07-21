@@ -44,8 +44,7 @@ def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', 'D', 'I', 'V', 'L', 'O', '
 # Front-End STT
 
 # Start agent command
-go() >> [show_line("Starting AD-Caspar..."), Chatbot().start]
-#go() >> [show_line("Starting AD-Caspar..."), Chatbot().start, set_wait(), HotwordDetect().start]
+go() >> [show_line("AD-Caspar started! Bot is running..."), Chatbot().start, set_wait()]
 
 
 # show higher Clauses kb
@@ -59,15 +58,11 @@ chkb() >> [clear_hkb()]
 clkb() >> [clear_lkb()]
 
 # managing bot beliefs
-+message(C, "hello") >> [Reply(C, "Hello! ;-)")]
-+message(C, X) / check_last_char(X, ".") >> [Reply(C, "Assertion detected")]
-+message(C, X) / check_last_char(X, "?") >> [Reply(C, "Question detected")]
++message(C, "hello") / WAIT(W) >> [Reply(C, "Hello! ;-)"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
++message(C, X) >> [ +WAKE("ON"), +CHAT_ID(C), +MSG(X), Timer(W).start]
 
-
-# Hotwords processing
-+HOTWORD_DETECTED("ON") / WAIT(W) >> [show_line("\n\nYes, I'm here!\n"), HotwordDetect().stop, UtteranceDetect().start, +WAKE("ON"), Timer(W).start]
-+STT("listen") / (WAKE("ON") & WAIT(W)) >> [+LISTEN("ON"), show_line("\nWaiting for knowledge...\n"), Timer(W).start]
-+STT("reason") / (WAKE("ON") & WAIT(W)) >> [+REASON("ON"), show_line("\nWaiting for query...\n"), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Assertion detected"), +LISTEN("ON"), +STT(X), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Question detected"), +REASON("ON"), +STT(X), Timer(W).start]
 
 # Query KB
 +STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
@@ -80,13 +75,13 @@ process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_R
 # Generalization assertion
 new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
-new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
+new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [Reply(C, "Ok. I will remember:", X, T), show_line("\n------------- Done.\n"), flush(), Timer(W).start]
 
 
 # Reactive Reasoning
-+STT(X) / WAKE("ON") >> [UtteranceDetect().stop, -WAKE("ON"), show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine(), HotwordDetect().start]
++STT(X) / WAKE("ON") >> [-WAKE("ON"), show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine()]
 
-+TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & REASON("ON")) >> [show_line("\nReturning to idle state...\n"), -WAKE("ON"), -LISTEN("ON"), -REASON("ON"), UtteranceDetect().stop, HotwordDetect().start]
-+TIMEOUT("ON") / (WAKE("ON") & REASON("ON")) >> [show_line("\nReturning to idle state...\n"), -REASON("ON"), -WAKE("ON"), UtteranceDetect().stop, HotwordDetect().start]
-+TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nReturning to idle state...\n"), -LISTEN("ON"), -WAKE("ON"), UtteranceDetect().stop, HotwordDetect().start]
-+TIMEOUT("ON") / WAKE("ON") >> [show_line("\nReturning to idle state...\n"), -WAKE("ON"), UtteranceDetect().stop, HotwordDetect().start]
++TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & REASON("ON") & CHAT_ID(C)) >> [Reply(C, "Returning to sleep..."), -WAKE("ON"), -LISTEN("ON"), -REASON("ON"), -CHAT_ID(C)]
++TIMEOUT("ON") / (WAKE("ON") & REASON("ON") & CHAT_ID(C)) >> [Reply(C, "Returning to sleep..."), -REASON("ON"), -WAKE("ON"), -CHAT_ID(C)]
++TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & CHAT_ID(C)) >> [Reply(C, "Returning sleep..."), -LISTEN("ON"), -WAKE("ON"), -CHAT_ID(C)]
++TIMEOUT("ON") / (WAKE("ON") & CHAT_ID(C)) >> [Reply(C, "Returning to sleep..."), -WAKE("ON"), -CHAT_ID(C)]

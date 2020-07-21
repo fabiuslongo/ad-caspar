@@ -163,6 +163,8 @@ class COND_PRE_MOD(Belief): pass
 
 class SENSOR(Belief): pass
 class START_ROUTINE(Reactor): pass
+class CHAT_ID(Belief): pass
+class MSG(Belief): pass
 
 # clause
 class CLAUSE(Belief): pass

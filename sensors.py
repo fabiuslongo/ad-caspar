@@ -56,6 +56,7 @@ class Timer(Sensor):
         self.do_restart = True
         self.event.set()
 
+
     def on_stop(self):
         self.do_restart = False
         self.event.set()
