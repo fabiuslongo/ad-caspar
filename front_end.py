@@ -59,10 +59,12 @@ clkb() >> [clear_lkb()]
 
 # managing bot beliefs
 +message(C, "hello") / WAIT(W) >> [Reply(C, "Hello! ;-)"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
-+message(C, X) >> [ +WAKE("ON"), +CHAT_ID(C), +MSG(X), Timer(W).start]
++message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start]
 
 +MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Assertion detected"), +LISTEN("ON"), +STT(X), Timer(W).start]
 +MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Question detected"), +REASON("ON"), +STT(X), Timer(W).start]
+
++OUT(X) / CHAT_ID(C) >> [Reply(C, X), Timer(W).start]
 
 # Query KB
 +STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
@@ -75,7 +77,7 @@ process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_R
 # Generalization assertion
 new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
-new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [Reply(C, "Ok. I will remember:", X, T), show_line("\n------------- Done.\n"), flush(), Timer(W).start]
+new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
 
 
 # Reactive Reasoning

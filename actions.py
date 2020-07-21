@@ -117,6 +117,10 @@ class REASON(Belief): pass
 class RETRACT(Belief): pass
 class IS_RULE(Belief): pass
 class WAIT(Belief): pass
+class OUT(Reactor): pass
+class MSG(Reactor): pass
+
+
 
 # domotic reactive routines
 class r1(Procedure): pass
@@ -831,14 +835,24 @@ class reason(Action):
         candidates = []
         nested_result = False
 
-        if bc_result is False:
+        if bc_result is not False:
+            self.assert_belief(OUT("From HKB: True"))
+
+        elif bc_result is False:
 
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
             if nested_result is None:
                 print("\nClause present in kb. No substitutions needed.")
+                self.assert_belief(OUT("From HKB: True"))
+
+            elif nested_result is False:
+                self.assert_belief(OUT("From HKB: False"))
+
             else:
                 print("\nResult: ", nested_result)
+                self.assert_belief(OUT("From HKB: True"))
+
 
         if LKB_USAGE and bc_result is False and nested_result is False:
 
@@ -856,14 +870,24 @@ class reason(Action):
 
             candidates = []
 
-            if bc_result is False:
+            if bc_result is not False:
+                self.assert_belief(OUT("From LKB: True"))
+
+            elif bc_result is False:
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
 
                 if nested_result is None:
                     print("\nClause present in kb. No substitutions needed.")
+                    self.assert_belief(OUT("From LKB: True"))
+
+                elif nested_result is False:
+                    self.assert_belief(OUT("From LKB: False"))
+                    print("\nClause present in kb. No substitutions needed.")
+
                 else:
                     print("\nResult: ", nested_result)
+                    self.assert_belief(OUT("From LKB: True"))
 
             reason_keys = lkbm.get_last_keys()
             print("\nreason keys:", reason_keys)
