@@ -168,7 +168,7 @@ class COND_PRE_MOD(Belief): pass
 class SENSOR(Belief): pass
 class START_ROUTINE(Reactor): pass
 class CHAT_ID(Belief): pass
-class MSG(Belief): pass
+class MSG(Reactor): pass
 
 # clause
 class CLAUSE(Belief): pass
@@ -289,7 +289,6 @@ class preprocess_clause(Action):
         if parser.get_flush() is False:
 
             print("USING CACHE....................................................")
-            deps = parser.get_last_deps()
             m_deps = parser.get_last_m_deps()
             print("\n" + str(m_deps))
 
@@ -381,7 +380,7 @@ class preprocess_clause(Action):
                     mods.append(v[0])
                 if self.get_pos(v[0]) == "IN" and GEN_PREP is True:
                     mods.append(v[0])
-                elif self.get_pos(v[0]) == "JJ" and GEN_ADJ is True:
+                elif self.get_pos(v[0]) in ['JJ', 'JJR', 'JJS'] and GEN_ADJ is True:
                     mods.append(v[0])
 
                 elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS']:
@@ -457,7 +456,7 @@ class preprocess_clause(Action):
                     mods.append(v[0])
                 elif self.get_pos(v[0]) == "IN" and GEN_PREP is True:
                     mods.append(v[0])
-                elif self.get_pos(v[0]) == "JJ" and GEN_ADJ is True:
+                elif self.get_pos(v[0]) in ['JJ', 'JJR', 'JJS'] and GEN_ADJ is True:
                     mods.append(v[0])
 
                 if self.get_pos(v[0]) in ['RB', 'RBR', 'RBS']:
@@ -795,19 +794,19 @@ class retract_clause(Action):
 class new_clause(Action):
 
     def execute(self, *args):
-        sentence = args[0]()
+        clause = args[0]()
 
         start_time = time.time()
 
-        print("\n" + sentence)
-        mf = parser.morph(sentence)
+        print("\n" + clause)
+        mf = parser.morph(clause)
         def_clause = expr(mf)
-        ner = parser.get_last_ner()
+        sentence = parser.get_last_sentence()
 
-        kb_fol.nested_tell(def_clause, [])
+        kb_fol.nested_tell(def_clause, "")
 
         if LKB_USAGE:
-            lkbm.insert_clause_db(mf, ner)
+            lkbm.insert_clause_db(mf, sentence)
 
         end_time = time.time()
         assert_time = end_time - start_time
@@ -896,8 +895,13 @@ class reason(Action):
             confidence = lkbm.get_confidence()
             print("Initial confidence:", confidence)
             lkbm.reset_confidence()
-            print("\ncandidates: ", candidates)
+            print("\nCandidates: ", candidates)
 
+            print("\nRelated sentences:\n")
+            for rk in reason_keys:
+                sentence = lkbm.get_sentence_from_db(rk)
+                if len(sentence) > 0:
+                    print(sentence)
 
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:

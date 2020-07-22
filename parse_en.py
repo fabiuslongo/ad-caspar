@@ -41,6 +41,13 @@ class Parse(object):
         # last detected entities
         self.ner = []
 
+        # last processed sentence
+        self.last_sentence = None
+
+
+    def get_last_sentence(self):
+        return self.last_sentence
+
 
     def get_last_ner(self):
         return self.ner
@@ -1301,7 +1308,8 @@ class Parse(object):
     def get_deps(self, input_text):
 
         nlp = self.get_nlp_engine()
-        doc = nlp(input_text[0:len(input_text)])
+        doc = nlp(input_text)
+        self.last_sentence = input_text
 
         for X in doc.ents:
             ent = "("+X.label_ + ", " + X.text + ")"
@@ -1324,7 +1332,6 @@ class Parse(object):
             deps.append(new_triple)
 
         return deps
-
 
 
     def morph(self, sent):

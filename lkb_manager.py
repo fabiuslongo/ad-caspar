@@ -1,4 +1,5 @@
 import pymongo
+from bson.objectid import ObjectId
 
 
 class ManageLKB(object):
@@ -37,7 +38,7 @@ class ManageLKB(object):
         return self.reason_keys
 
 
-    def insert_clause_db(self, cls, ner):
+    def insert_clause_db(self, cls, sentence):
 
         db = self.client["ad-caspar"]
         clauses = db["clauses"]
@@ -50,7 +51,7 @@ class ManageLKB(object):
             clause = {
                 "value": cls,
                 "features": features,
-                "ner": ner
+                "sentence": sentence
                 }
             sentence_id = clauses.insert_one(clause).inserted_id
             print("sentence_id: " + str(sentence_id))
@@ -82,7 +83,7 @@ class ManageLKB(object):
             print("\n")
             print(cls['value'])
             print(cls['features'])
-            print(cls['ner'])
+            print(cls['sentence'])
         return myclauses.count()
 
 
@@ -139,22 +140,23 @@ class ManageLKB(object):
 
         return aggregated_clauses
 
-    """
-    def get_fol_from_db(self, id): 
+
+
+
+    def get_sentence_from_db(self, id):
 
         db = self.client["ad-caspar"]
-        terms = db["clauses"]
-        fol = []
+        clauses = db["clauses"]
+        sentence = ""
 
-        query = {'sentence_id': ObjectId(str(id))}
-        mydoc = terms.find(query)
+        query = {'_id': ObjectId(str(id))}
+        mydoc = clauses.find(query)
         for t in mydoc:
-            clause = []
-            term.append(t['value'])
-            term.append(t['features'])
-            fol.append(term)
-        return fol
-    """
+            sentence = t['sentence']
+        return sentence
+
+
+
 
 
 
