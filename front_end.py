@@ -28,7 +28,9 @@ q() >> [+STT("Colonel West is a criminal")]
 # simulating keywords
 w() >> [show_line("\nwaking up the bot....."), +WAKE("ON")]
 l() >> [go(), w(), show_line("\nlistening mode on....."), +LISTEN("ON")]
-r() >> [go(), w(), show_line("\nreasoning mode on....."), +REASON("ON")]
+r() >> [-LISTEN('ON'), show_line("\nreasoning mode on....."), +REASON("ON")]
+
+t() >> [go(), w(), show_line("\nreasoning mode on....."), +REASON("ON")]
 
 # simulating sensors
 s1() >> [simulate_sensor("be", "time", "12.00")]
@@ -66,7 +68,8 @@ clkb() >> [clear_lkb()]
 
 
 # Query KB
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_fact_shape(X)]
++FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
 +STT(X) / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "NOMINAL"), process_rule()]

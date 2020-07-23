@@ -111,6 +111,10 @@ class t(Procedure): pass
 # mode reactors
 class HOTWORD_DETECTED(Reactor): pass
 class STT(Reactor): pass
+
+# Fact Shape STT
+class FS_STT(Reactor): pass
+
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
 class REASON(Belief): pass
@@ -328,8 +332,17 @@ class preprocess_clause(Action):
                         if b[0] == old_value:
                             b[0] = new_value
 
+                # adverb POS correction
+                if v[0][0] == "e":
+                    old_value = v[1]
+                    new_value = self.get_lemma(v[1]) + ":RB"
+                    v[1] = new_value
+                    for b in MST[3]:
+                        if b[0] == old_value:
+                            b[0] = new_value
+
                 # leveraging NER for adverbs detection
-                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner:
+                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD']:
                     v[1] = self.get_lemma(v[1])+":RB"
 
 
@@ -857,6 +870,7 @@ class reason(Action):
 
             print("\nq: ", q)
 
+            print("\nMIN_CONFIDENCE: ", MIN_CONFIDENCE)
             aggregated_clauses = lkbm.aggregate_clauses(q, [], MIN_CONFIDENCE)
 
             print("\nnumber asserted clauses: ", len(aggregated_clauses))
@@ -898,10 +912,14 @@ class reason(Action):
             print("\nCandidates: ", candidates)
 
             print("\nRelated sentences:\n")
+            unique_sentences = []
             for rk in reason_keys:
                 sentence = lkbm.get_sentence_from_db(rk)
                 if len(sentence) > 0:
-                    print(sentence)
+                    if sentence not in unique_sentences:
+                        unique_sentences.append(sentence)
+            for uq in unique_sentences:
+                print(uq)
 
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:
@@ -1673,3 +1691,9 @@ class check_last_char(ActiveBelief):
             return True
         else:
             return False
+
+
+class assert_fact_shape(Action):
+    def execute(self, arg1):
+        sentence = str(arg1).split("'")[3]
+        self.assert_belief(FS_STT(sentence))
