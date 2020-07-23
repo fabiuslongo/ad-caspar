@@ -332,8 +332,8 @@ class preprocess_clause(Action):
                         if b[0] == old_value:
                             b[0] = new_value
 
-                # adverb POS correction
-                if v[0][0] == "e":
+                # MST varlist correction on cases of wrong adverb POS
+                if v[0][0] == "e" and self.get_pos(v[1]) != "RB":
                     old_value = v[1]
                     new_value = self.get_lemma(v[1]) + ":RB"
                     v[1] = new_value
@@ -837,7 +837,7 @@ class reason(Action):
         print("OCCUR_CHECK: ", exec_occur_check)
 
         bc_result = kb_fol.ask(expr(q))
-        print("\n ---- NOMINAL REASONING ---\n")
+        print("\n ---- Backward-Chaining REASONING ---\n")
         print("Result: " + str(bc_result))
 
         end_time1 = time.time()
@@ -859,6 +859,7 @@ class reason(Action):
                 self.assert_belief(OUT("From HKB: True"))
 
             elif nested_result is False:
+                print("\nResult: ", nested_result)
                 self.assert_belief(OUT("From HKB: False"))
 
             else:
@@ -868,16 +869,16 @@ class reason(Action):
 
         if LKB_USAGE and bc_result is False and nested_result is False:
 
-            print("\nq: ", q)
-
+            print("\n\n ---- Backward-Chaining REASONING from Lower KB ---")
+            print("\nquery: ", q)
             print("\nMIN_CONFIDENCE: ", MIN_CONFIDENCE)
+
             aggregated_clauses = lkbm.aggregate_clauses(q, [], MIN_CONFIDENCE)
 
             print("\nnumber asserted clauses: ", len(aggregated_clauses))
             for a in aggregated_clauses:
                 kb_fol.tell(expr(a))
 
-            print("\n\n ---- Backward-Chaining REASONING from Lower KB ---")
             bc_result = kb_fol.ask(expr(q))
             print("\nResult: ", bc_result)
 

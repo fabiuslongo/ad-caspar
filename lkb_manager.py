@@ -130,10 +130,10 @@ class ManageLKB(object):
             confidence = int(occurrencies) / int(feat_num)
             clauses = a['group1']
             self.set_confidence(confidence)
-            self.add_reason_keys(a['group2'])
             for c in clauses:
-                if c not in aggregated_clauses and confidence > min_confidence:
+                if c not in aggregated_clauses and confidence >= min_confidence:
                     aggregated_clauses.append(c)
+                    self.add_reason_keys(a['group2'])
                     print("\naggregated: ", c)
                     print("confidence: ", confidence)
                     self.aggregate_clauses(c, aggregated_clauses, min_confidence)

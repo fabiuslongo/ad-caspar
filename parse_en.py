@@ -1,11 +1,13 @@
 import spacy
 import platform
 import os
+from uniquelizer import *
+
 
 class Parse(object):
     def __init__(self, VERBOSE):
 
-        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'advcl', 'case', 'intj', 'dep', 'predet']
+        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'case', 'intj', 'dep', 'predet']
 
         self.adv_adj_POS = ['RB', 'UH', 'RP', 'PRP', 'RBS', 'JJ', 'NN', 'RBR', 'DT']
 
@@ -732,7 +734,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
-                elif triple[0] == "xcomp":
+                elif triple[0] == "xcomp" or triple[0] == "advcl":
 
                     PENDING_FOUND = False
                     PAST_PART_CASE = False
@@ -811,7 +813,7 @@ class Parse(object):
                                     v[0] = dav + str(davidsonian_index)
 
                     if self.VERBOSE is True:
-                        print('--------- xcomp ----------')
+                        print('--------- xcomp/advcl ----------')
                         print('pendings: ' + str(pendings))
                         print('pending_prep: ' + str(pending_prep))
                         print('preps: ' + str(preps))
@@ -1358,8 +1360,33 @@ class Parse(object):
         return final_sent_changed
 
 
+def main():
+    VERBOSE = True
+    LANGUAGE = "eng"
+    sentence = "Marta went to play with Tim"
+    parser = Parse(VERBOSE)
+    deps = parser.get_deps(sentence)
+    parser.set_last_deps(deps)
+    ner = parser.get_last_ner()
+    print("\nner: ", ner)
+
+    for i in range(len(deps)):
+        governor = parser.get_lemma(deps[i][1]).capitalize() + ":" + parser.get_pos(deps[i][1])
+        dependent = parser.get_lemma(deps[i][2]).capitalize() + ":" + parser.get_pos(deps[i][2])
+        deps[i] = [deps[i][0], governor, dependent]
+
+    # Dependencies Uniquezation
+    Ren = Uniquelizer(VERBOSE, LANGUAGE)
+    m_deps = Ren.morph_deps(deps)
+    print("\n" + str(m_deps))
+    parser.set_last_m_deps(m_deps)
+
+    MST = parser.create_MST(m_deps, 'e', 'x')
+    print("\nMST: \n" + str(MST))
 
 
+if __name__ == "__main__":
+    main()
 
 
 
