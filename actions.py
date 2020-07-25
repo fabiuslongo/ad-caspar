@@ -11,6 +11,7 @@ import datetime
 from difflib import SequenceMatcher
 
 from lkb_manager import *
+from quest_manager import *
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -345,7 +346,6 @@ class preprocess_clause(Action):
                 if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD']:
                     v[1] = self.get_lemma(v[1])+":RB"
 
-
             vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
             fol_manager.set_last_fol(vect_LR_fol)
 
@@ -353,6 +353,9 @@ class preprocess_clause(Action):
             fol_manager.no_flush()
 
         print("\nBefore dealing case:\n" + str(vect_LR_fol))
+        if len(vect_LR_fol) == 0:
+            print("\n --- IMPROPER VERBAL PHRASE COSTITUTION ---")
+            return
 
         if type == "NOMINAL":
             # NOMINAL CASE
@@ -854,11 +857,8 @@ class reason(Action):
 
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
-            if nested_result is None:
-                print("\nClause present in kb. No substitutions needed.")
-                self.assert_belief(OUT("From HKB: True"))
 
-            elif nested_result is False:
+            if nested_result is False:
                 print("\nResult: ", nested_result)
                 self.assert_belief(OUT("From HKB: False"))
 
@@ -891,17 +891,14 @@ class reason(Action):
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
 
-                if nested_result is None:
-                    print("\nClause present in kb. No substitutions needed.")
-                    self.assert_belief(OUT("From LKB: True"))
-
-                elif nested_result is False:
+                if nested_result is False:
+                    print("\nResult: ", nested_result)
                     self.assert_belief(OUT("From LKB: False"))
-                    print("\nClause present in kb. No substitutions needed.")
 
                 else:
                     print("\nResult: ", nested_result)
                     self.assert_belief(OUT("From LKB: True"))
+
 
             reason_keys = lkbm.get_last_keys()
             print("\nreason keys:", reason_keys)
@@ -1679,6 +1676,7 @@ class flush(Action):
     def execute(self):
         parser.flush()
         fol_manager.flush()
+        print("\nflushing cache...")
 
 
 class check_last_char(ActiveBelief):
@@ -1697,4 +1695,12 @@ class check_last_char(ActiveBelief):
 class assert_fact_shape(Action):
     def execute(self, arg1):
         sentence = str(arg1).split("'")[3]
+
+        qdeps = parser.get_deps(sentence)
+
+        Qm = QManager(VERBOSE, LANGUAGE, qdeps)
+        fs_sent = Qm.get_fact_shape(sentence)
+        print("\nFact Shape sentence: ", fs_sent)
+        parser.flush()
+
         self.assert_belief(FS_STT(sentence))

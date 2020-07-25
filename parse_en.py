@@ -24,7 +24,7 @@ class Parse(object):
         self.nlp = spacy.load('en_core_web_md')  # 91 MB
 
         # python -m spacy download en_core_web_lg
-        # self.nlp = spacy.load('en_core_web_lg')  # 789 MB
+        #self.nlp = spacy.load('en_core_web_lg')  # 789 MB
 
         if platform.system() == "Windows":
             os.system('cls')
@@ -1363,7 +1363,7 @@ class Parse(object):
 def main():
     VERBOSE = True
     LANGUAGE = "eng"
-    sentence = "Marta went to play with Tim"
+    sentence = "Where is the Grand Canion located?"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence)
     parser.set_last_deps(deps)

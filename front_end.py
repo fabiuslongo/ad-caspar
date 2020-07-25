@@ -26,11 +26,10 @@ q() >> [+STT("Colonel West is a criminal")]
 
 
 # simulating keywords
-w() >> [show_line("\nwaking up the bot....."), +WAKE("ON")]
-l() >> [go(), w(), show_line("\nlistening mode on....."), +LISTEN("ON")]
-r() >> [-LISTEN('ON'), show_line("\nreasoning mode on....."), +REASON("ON")]
+l() >> [show_line("\nlistening mode on....."), set_wait(), +WAKE("ON"), +LISTEN("ON")]
+r() >> [show_line("\nreasoning mode on....."), -LISTEN('ON'), +REASON("ON")]
 
-t() >> [go(), w(), show_line("\nreasoning mode on....."), +REASON("ON")]
+t() >> [show_line("\nreasoning mode on....."), set_wait(), +WAKE("ON"), +REASON("ON")]
 
 # simulating sensors
 s1() >> [simulate_sensor("be", "time", "12.00")]
@@ -80,7 +79,7 @@ process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_R
 new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
-new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
+new_def_clause(X, M, T) / WAIT(W) >> [flush(), show_line("\n------------- Done.\n"), Timer(W).start]
 
 
 # Reactive Reasoning
