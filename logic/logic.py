@@ -411,7 +411,7 @@ def fol_bc_ask(KB, query):
 
 
 def fol_bc_or(KB, goal, theta):
-    for rule in KB.fetch_rules_for_goal(goal):
+    for rule in reversed(KB.fetch_rules_for_goal(goal)):
         lhs, rhs = parse_definite_clause(standardize_variables(rule))
         for theta1 in fol_bc_and(KB, lhs, unify(rhs, goal, theta)):
             yield theta1

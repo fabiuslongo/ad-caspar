@@ -7,7 +7,7 @@ from uniquelizer import *
 class Parse(object):
     def __init__(self, VERBOSE):
 
-        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'case', 'intj', 'dep', 'predet']
+        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'case', 'intj', 'dep', 'predet', 'advcl']
 
         self.adv_adj_POS = ['RB', 'UH', 'RP', 'PRP', 'RBS', 'JJ', 'NN', 'RBR', 'DT']
 
@@ -283,12 +283,26 @@ class Parse(object):
 
                     davidsonian_found = "UNASSIGNED"
                     PENDING_FOUND = False
+                    DOBJECT_FOUND = False
 
                     # retriving dependent-related davidsonian
                     for p in pendings:
                         if self.get_first_token(p[0]) == triple[2]:
                             davidsonian_found = p[1]
                             PENDING_FOUND = True
+
+                        # accomodation for dealing with "What", "When" questions
+                        if self.get_first_token(p[0]) == triple[1] and triple[2][:-2] in ["What", "When"]:
+                            DOBJECT_FOUND = True
+                            assignment = []
+                            assignment.append(var + str(index_args_counter))
+                            assignment.append(triple[2])
+                            var_list.append(assignment)
+                            p[3] = var + str(index_args_counter)
+                            index_args_counter = index_args_counter + 1
+
+                    if DOBJECT_FOUND:
+                       pass
 
                     if PENDING_FOUND:
                         # retriving governor pending for setting davidsonian as object
@@ -575,7 +589,6 @@ class Parse(object):
 
                     # searching triple[1] in pendings
 
-
                     for p in pendings:
                         if self.get_first_token(p[0]) == triple[1] or self.get_first_token(p[0]) == found_mod:
                             davidsonian_found = p[1]
@@ -643,6 +656,13 @@ class Parse(object):
                         for p in pendings:
                             if p[3] == found_var or p[2] == found_var:
                                 davidsonian_found = p[1]
+
+
+                    # retriving from parent prep
+                    if d_found is False:
+                        for prep in preps:
+                            if triple[1] == prep[0]:
+                                found_var = prep[1]
 
                     # case example: of:IN(e1, x5)
                     if found_var == 'UNASSIGNED':
@@ -813,7 +833,7 @@ class Parse(object):
                                     v[0] = dav + str(davidsonian_index)
 
                     if self.VERBOSE is True:
-                        print('--------- xcomp/advcl ----------')
+                        print('--------- xcomp/advcl? ----------')
                         print('pendings: ' + str(pendings))
                         print('pending_prep: ' + str(pending_prep))
                         print('preps: ' + str(preps))
@@ -1363,7 +1383,7 @@ class Parse(object):
 def main():
     VERBOSE = True
     LANGUAGE = "eng"
-    sentence = "Where is the Grand Canion located?"
+    sentence = "When an American sells weapons to a hostile nation, that American is a criminal"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence)
     parser.set_last_deps(deps)
@@ -1379,7 +1399,63 @@ def main():
     Ren = Uniquelizer(VERBOSE, LANGUAGE)
     m_deps = Ren.morph_deps(deps)
     print("\n" + str(m_deps))
-    parser.set_last_m_deps(m_deps)
+
+    """
+
+    LEFT_BRANCH = []
+    ROOT = []
+    RIGHT_BRANCH = []
+    ROOT_CREATED = False
+
+    for d in m_deps:
+        if ROOT_CREATED is False and d[0] != "ROOT":
+            LEFT_BRANCH.append(d)
+        else:
+            if d[0] == "ROOT":
+                ROOT.append(d)
+                ROOT_CREATED = True
+            else:
+                RIGHT_BRANCH.append(d)
+
+    print("\nLB: ", LEFT_BRANCH)
+    print("ROOT: ", ROOT)
+    print("RB: ", RIGHT_BRANCH)
+    print("\n")
+    root_gov_dep = ROOT[0]
+    QType = "POLAR"
+
+    for l in LEFT_BRANCH:
+        if parser.get_lemma(l[2])[:-2] == "Who" and l[1] == root_gov_dep[1]:
+            if l[0] == "attr":
+                QType = "WHO"
+                l[0] = "nsubj"
+                break
+
+    if parser.get_lemma(LEFT_BRANCH[0][2])[:-2] == "Where":
+        QType = "WHERE"
+        #RIGHT_BRANCH.append(LEFT_BRANCH[0])
+        #LEFT_BRANCH.remove(LEFT_BRANCH[0])
+
+    elif parser.get_lemma(LEFT_BRANCH[0][2])[:-2] == "When":
+        QType = "WHEN"
+        RIGHT_BRANCH.append(LEFT_BRANCH[0])
+        LEFT_BRANCH.remove(LEFT_BRANCH[0])
+
+    if QType == "WHERE" or QType == "WHEN":
+        fs_deps = RIGHT_BRANCH+ROOT+LEFT_BRANCH
+    else:
+        fs_deps = LEFT_BRANCH+ROOT+RIGHT_BRANCH
+
+    print("\nLB: ", LEFT_BRANCH)
+    print("ROOT: ", ROOT)
+    print("RB: ", RIGHT_BRANCH)
+    print("\n")
+
+    print("QType: "+QType)
+    print(fs_deps)
+    print("\n")
+    """
+
 
     MST = parser.create_MST(m_deps, 'e', 'x')
     print("\nMST: \n" + str(MST))
