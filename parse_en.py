@@ -292,7 +292,7 @@ class Parse(object):
                             PENDING_FOUND = True
 
                         # accomodation for dealing with "What", "When" questions
-                        if self.get_first_token(p[0]) == triple[1] and triple[2][:-2] in ["What", "When"]:
+                        if self.get_first_token(p[0]) == triple[1] and triple[2][:-5] in ["What", "When", "Who"]:
                             DOBJECT_FOUND = True
                             assignment = []
                             assignment.append(var + str(index_args_counter))
@@ -304,7 +304,7 @@ class Parse(object):
                     if DOBJECT_FOUND:
                        pass
 
-                    if PENDING_FOUND:
+                    elif PENDING_FOUND:
                         # retriving governor pending for setting davidsonian as object
                         for p in pendings:
                             if self.get_first_token(p[0]) == triple[1]:
@@ -1383,7 +1383,7 @@ class Parse(object):
 def main():
     VERBOSE = True
     LANGUAGE = "eng"
-    sentence = "When an American sells weapons to a hostile nation, that American is a criminal"
+    sentence = "The president of the United States is who"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence)
     parser.set_last_deps(deps)

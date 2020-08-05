@@ -39,6 +39,8 @@ HOST = config.get('LKB', 'HOST')
 LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
 EMPTY_HKB_AFTER_REASONING = config.getboolean('LKB', 'EMPTY_HKB_AFTER_REASONING')
+NESTED_REASONING = config.getboolean('REASONING', 'NESTED_REASONING')
+
 
 parser = Parse(VERBOSE)
 fol_manager = ManageFols(VERBOSE, LANGUAGE)
@@ -853,7 +855,7 @@ class reason(Action):
         if bc_result is not False:
             self.assert_belief(OUT("From HKB: True"))
 
-        elif bc_result is False:
+        elif bc_result is False and NESTED_REASONING:
 
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
@@ -887,7 +889,7 @@ class reason(Action):
             if bc_result is not False:
                 self.assert_belief(OUT("From LKB: True"))
 
-            elif bc_result is False:
+            elif bc_result is False and NESTED_REASONING:
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
 
