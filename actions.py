@@ -11,7 +11,6 @@ import datetime
 from difflib import SequenceMatcher
 
 from lkb_manager import *
-from quest_manager import *
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -116,7 +115,7 @@ class HOTWORD_DETECTED(Reactor): pass
 class STT(Reactor): pass
 
 # Fact Shape STT
-class FS_STT(Reactor): pass
+class FS_STT(Belief): pass
 
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
@@ -201,6 +200,18 @@ class PRE_CROSS(Belief): pass
 class GEN_MASK(Belief): pass
 # Actions crossing var
 class ACT_CROSS_VAR(Belief): pass
+
+
+# Query to Facts beliefs
+class AUX(Belief): pass
+class SNIPPLET(Belief): pass
+class SEQUENCE(Belief): pass
+class CASE(Belief): pass
+class SUBJ(Belief): pass
+class ROOT(Belief): pass
+class OBJ(Belief): pass
+
+
 
 
 class set_wait(Action):
@@ -306,7 +317,7 @@ class preprocess_clause(Action):
         else:
 
             print("\n" + sentence)
-            deps = parser.get_deps(sentence)
+            deps = parser.get_deps(sentence, True)
             parser.set_last_deps(deps)
             ner = parser.get_last_ner()
             print("\nner: ", ner)
@@ -1694,15 +1705,97 @@ class check_last_char(ActiveBelief):
             return False
 
 
-class assert_fact_shape(Action):
+class assert_frames(Action):
     def execute(self, arg1):
         sentence = str(arg1).split("'")[3]
 
-        qdeps = parser.get_deps(sentence)
+        deps = parser.get_deps(sentence, False)
+        print(deps)
 
-        Qm = QManager(VERBOSE, LANGUAGE, qdeps)
-        fs_sent = Qm.get_fact_shape(sentence)
-        print("\nFact Shape sentence: ", fs_sent)
+        first_word = parser.get_lemma(deps[0][2])
+        root_index = 0
+        subj_index = 0
+        obj_index = 0
+        root_verb = ""
+        subj = ""
+        obj = ""
+
+        if deps[0][0] == "aux":
+            snipplet = ""
+            for i in range(1, len(deps)-1):
+                if i == 1:
+                    snipplet = parser.get_lemma(deps[i][2])
+                else:
+                    snipplet = snipplet+" "+parser.get_lemma(deps[i][2])
+            self.assert_belief(SEQUENCE("AUX", snipplet))
+
+        elif first_word.lower() == "who":
+            deps[0][2] = "Null"
+            self.assert_belief(CASE("who"))
+            for i in range(len(deps)-1):
+                if deps[i][0] == "ROOT":
+                    root = parser.get_lemma(deps[i][2])
+                    print("root: ", root)
+                    root_index = i
+                    print(root_index)
+                    break
+
+
+            for i in range(0, root_index):
+                if i == 0:
+                    subj = parser.get_lemma(deps[i][2])
+                else:
+                    subj = subj+" "+parser.get_lemma(deps[i][2])
+
+            for i in range(root_index+1, len(deps)-1):
+                if i == root_index+1:
+                    obj = parser.get_lemma(deps[i][2])
+                else:
+                    obj = obj+" "+parser.get_lemma(deps[i][2])
+
+            print("subj: ", subj)
+            print("obj: ", obj)
+
+            self.assert_belief(SUBJ(subj))
+            self.assert_belief(ROOT(root))
+            self.assert_belief(OBJ(obj))
+            self.assert_belief(SEQUENCE(subj, root, obj))
+
+            """ 
+            for i in range(len(deps)-1):
+                if i < root_index:
+                    if deps[i][1] == root_verb:
+                        print("Subj: ", deps[i])
+                        subj_index = i
+                        print(subj_index)
+                elif i > root_index:
+                    if deps[i][1] == root_verb:
+                        print("Obj: ", deps[i])
+                        obj_index = i
+                        print(obj_index)
+            """
+
+
+        elif first_word == "what" or first_word == "which":
+            pass
+
+        elif first_word == "when":
+            pass
+
+        elif first_word == "where":
+            pass
+
         parser.flush()
 
-        self.assert_belief(FS_STT(sentence))
+
+
+class join_seq(Action):
+    def execute(self, *args):
+       seq = str(args).split("'")
+       for i in range(3, len(seq), 4):
+           if i == 3:
+               new_seq = seq[i]
+           else:
+               new_seq = new_seq + " " + seq[i]
+
+       self.assert_belief(FS_STT(new_seq))

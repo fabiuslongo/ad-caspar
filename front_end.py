@@ -66,8 +66,13 @@ clkb() >> [clear_lkb()]
 +OUT(X) / CHAT_ID(C) >> [Reply(C, X), Timer(W).start]
 
 
-# Query KB
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_fact_shape(X)]
+# Reasoning
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X)]
++SEQUENCE("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), +FS_STT(X)]
+
++SEQUENCE(X, Y, Z) / (CASE("who") & SUBJ(X) & ROOT("is") & OBJ(Z)) >> [show_line("\nWHO case is....\n"), join_seq(Z, Y, X), join_seq(X, Y, Z)]
++SEQUENCE(X, Y, Z) / (CASE("who") & SUBJ(X) & ROOT(Y) & OBJ(Z)) >> [show_line("\nWHO case....\n"), join_seq(X, Y, Z)]
+
 +FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
@@ -82,7 +87,7 @@ new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- 
 new_def_clause(X, M, T) / WAIT(W) >> [flush(), show_line("\n------------- Done.\n"), Timer(W).start]
 
 
-# Reactive Reasoning
+# Domotic Reasoning
 +STT(X) / WAKE("ON") >> [show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine()]
 
 +TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & REASON("ON") & CHAT_ID(C)) >> [show_line("Returning to sleep..."), Reply(C, "Returning to sleep..."), -WAKE("ON"), -LISTEN("ON"), -REASON("ON")]

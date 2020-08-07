@@ -24,7 +24,7 @@ class Parse(object):
         self.nlp = spacy.load('en_core_web_md')  # 91 MB
 
         # python -m spacy download en_core_web_lg
-        #self.nlp = spacy.load('en_core_web_lg')  # 789 MB
+        # self.nlp = spacy.load('en_core_web_lg')  # 789 MB
 
         if platform.system() == "Windows":
             os.system('cls')
@@ -1327,7 +1327,7 @@ class Parse(object):
         return result
 
 
-    def get_deps(self, input_text):
+    def get_deps(self, input_text, LEMMATIZED):
 
         nlp = self.get_nlp_engine()
         doc = nlp(input_text)
@@ -1345,13 +1345,26 @@ class Parse(object):
             if token.head.lemma_ == '-PRON-':
                 new_triple.append(token.head.text + ':' + token.head.tag_)
             else:
-                new_triple.append(token.head.lemma_ + ':' + token.head.tag_)
+                if LEMMATIZED:
+                    new_triple.append(token.head.lemma_ + ':' + token.head.tag_)
+                else:
+                    new_triple.append(token.head.text + ':' + token.head.tag_)
 
             if token.lemma_ == '-PRON-':
                 new_triple.append(token.text + ':' + token.tag_)
             else:
-                new_triple.append(token.lemma_ + ':' + token.tag_)
+                if LEMMATIZED:
+                    new_triple.append(token.lemma_ + ':' + token.tag_)
+                else:
+                    new_triple.append(token.text+ ':' + token.tag_)
+
             deps.append(new_triple)
+
+        # query accomodation
+        if LEMMATIZED:
+            for d in deps:
+                if d[2][0:4].lower() == "null":
+                    d[2] = "Null:RB"
 
         return deps
 
@@ -1383,9 +1396,11 @@ class Parse(object):
 def main():
     VERBOSE = True
     LANGUAGE = "eng"
-    sentence = "The president of the United States is who"
+    LEMMMATIZED = False
+
+    sentence = "The man called Obama is the president of United States?"
     parser = Parse(VERBOSE)
-    deps = parser.get_deps(sentence)
+    deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
     ner = parser.get_last_ner()
     print("\nner: ", ner)
@@ -1399,63 +1414,6 @@ def main():
     Ren = Uniquelizer(VERBOSE, LANGUAGE)
     m_deps = Ren.morph_deps(deps)
     print("\n" + str(m_deps))
-
-    """
-
-    LEFT_BRANCH = []
-    ROOT = []
-    RIGHT_BRANCH = []
-    ROOT_CREATED = False
-
-    for d in m_deps:
-        if ROOT_CREATED is False and d[0] != "ROOT":
-            LEFT_BRANCH.append(d)
-        else:
-            if d[0] == "ROOT":
-                ROOT.append(d)
-                ROOT_CREATED = True
-            else:
-                RIGHT_BRANCH.append(d)
-
-    print("\nLB: ", LEFT_BRANCH)
-    print("ROOT: ", ROOT)
-    print("RB: ", RIGHT_BRANCH)
-    print("\n")
-    root_gov_dep = ROOT[0]
-    QType = "POLAR"
-
-    for l in LEFT_BRANCH:
-        if parser.get_lemma(l[2])[:-2] == "Who" and l[1] == root_gov_dep[1]:
-            if l[0] == "attr":
-                QType = "WHO"
-                l[0] = "nsubj"
-                break
-
-    if parser.get_lemma(LEFT_BRANCH[0][2])[:-2] == "Where":
-        QType = "WHERE"
-        #RIGHT_BRANCH.append(LEFT_BRANCH[0])
-        #LEFT_BRANCH.remove(LEFT_BRANCH[0])
-
-    elif parser.get_lemma(LEFT_BRANCH[0][2])[:-2] == "When":
-        QType = "WHEN"
-        RIGHT_BRANCH.append(LEFT_BRANCH[0])
-        LEFT_BRANCH.remove(LEFT_BRANCH[0])
-
-    if QType == "WHERE" or QType == "WHEN":
-        fs_deps = RIGHT_BRANCH+ROOT+LEFT_BRANCH
-    else:
-        fs_deps = LEFT_BRANCH+ROOT+RIGHT_BRANCH
-
-    print("\nLB: ", LEFT_BRANCH)
-    print("ROOT: ", ROOT)
-    print("RB: ", RIGHT_BRANCH)
-    print("\n")
-
-    print("QType: "+QType)
-    print(fs_deps)
-    print("\n")
-    """
-
 
     MST = parser.create_MST(m_deps, 'e', 'x')
     print("\nMST: \n" + str(MST))
