@@ -115,7 +115,7 @@ class HOTWORD_DETECTED(Reactor): pass
 class STT(Reactor): pass
 
 # Fact Shape STT
-class FS_STT(Belief): pass
+class FS_STT(Reactor): pass
 
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
@@ -210,6 +210,9 @@ class CASE(Belief): pass
 class SUBJ(Belief): pass
 class ROOT(Belief): pass
 class OBJ(Belief): pass
+class INV_COP(Belief): pass
+class qreason(Procedure): pass
+
 
 
 
@@ -1729,9 +1732,13 @@ class assert_frames(Action):
                     snipplet = snipplet+" "+parser.get_lemma(deps[i][2])
             self.assert_belief(SEQUENCE("AUX", snipplet))
 
-        elif first_word.lower() == "who":
-            deps[0][2] = "Null"
-            self.assert_belief(CASE("who"))
+        elif first_word.lower() in ["who", "what", "which", "when", "where"]:
+            deps[0][2] = "Dummy"
+            self.assert_belief(CASE(first_word.lower()))
+
+
+        if first_word.lower() == "who":
+
             for i in range(len(deps)-1):
                 if deps[i][0] == "ROOT":
                     root = parser.get_lemma(deps[i][2])
@@ -1756,9 +1763,9 @@ class assert_frames(Action):
             print("subj: ", subj)
             print("obj: ", obj)
 
-            self.assert_belief(SUBJ(subj))
+            #self.assert_belief(SUBJ(subj))
             self.assert_belief(ROOT(root))
-            self.assert_belief(OBJ(obj))
+            #self.assert_belief(OBJ(obj))
             self.assert_belief(SEQUENCE(subj, root, obj))
 
             """ 

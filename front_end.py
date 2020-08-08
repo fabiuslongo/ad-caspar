@@ -67,11 +67,15 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X)]
-+SEQUENCE("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), +FS_STT(X)]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X), qreason()]
 
-+SEQUENCE(X, Y, Z) / (CASE("who") & SUBJ(X) & ROOT("is") & OBJ(Z)) >> [show_line("\nWHO case is....\n"), join_seq(Z, Y, X), join_seq(X, Y, Z)]
-+SEQUENCE(X, Y, Z) / (CASE("who") & SUBJ(X) & ROOT(Y) & OBJ(Z)) >> [show_line("\nWHO case....\n"), join_seq(X, Y, Z)]
+qreason() / SEQUENCE("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), -SEQUENCE("AUX", X), +FS_STT(X)]
+
+qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is") & INV_COP("YES")) >> [show_line("\nWHO case inverted copular...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO case normal copular...."), +INV_COP("YES"), join_seq(Z, Y, X), qreason()]
+qreason() / (SEQUENCE(X, Y, Z) & CASE("who")) >> [show_line("\nWHO case normal...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (CASE("who") & ROOT("is") & INV_COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE("who"), -ROOT("is"), -INV_COP("YES")]
+qreason() / (CASE("who") & ROOT(X)) >> [show_line("\nqreason ended normal...."), -ROOT(X), -CASE("who")]
 
 +FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
 

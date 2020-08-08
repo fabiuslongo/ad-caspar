@@ -1363,8 +1363,8 @@ class Parse(object):
         # query accomodation
         if LEMMATIZED:
             for d in deps:
-                if d[2][0:4].lower() == "null":
-                    d[2] = "Null:RB"
+                if d[2][0:5].lower() == "dummy":
+                    d[2] = "Dummy:DM"
 
         return deps
 
@@ -1398,7 +1398,7 @@ def main():
     LANGUAGE = "eng"
     LEMMMATIZED = False
 
-    sentence = "The man called Obama is the president of United States?"
+    sentence = "Who is going to clean the room?"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
