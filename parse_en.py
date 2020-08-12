@@ -1398,7 +1398,7 @@ def main():
     LANGUAGE = "eng"
     LEMMMATIZED = False
 
-    sentence = "Who is going to clean the room?"
+    sentence = "What movies have you seen recently?"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)

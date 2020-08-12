@@ -1715,11 +1715,8 @@ class assert_frames(Action):
         deps = parser.get_deps(sentence, False)
         print(deps)
 
-        first_word = parser.get_lemma(deps[0][2])
+        first_word = parser.get_lemma(deps[0][2]).lower()
         root_index = 0
-        subj_index = 0
-        obj_index = 0
-        root_verb = ""
         subj = ""
         obj = ""
 
@@ -1736,17 +1733,13 @@ class assert_frames(Action):
             deps[0][2] = "Dummy"
             self.assert_belief(CASE(first_word.lower()))
 
+        for i in range(len(deps) - 1):
+            if deps[i][0] == "ROOT":
+                root = parser.get_lemma(deps[i][2])
+                root_index = i
+                break
 
         if first_word.lower() == "who":
-
-            for i in range(len(deps)-1):
-                if deps[i][0] == "ROOT":
-                    root = parser.get_lemma(deps[i][2])
-                    print("root: ", root)
-                    root_index = i
-                    print(root_index)
-                    break
-
 
             for i in range(0, root_index):
                 if i == 0:
@@ -1763,28 +1756,52 @@ class assert_frames(Action):
             print("subj: ", subj)
             print("obj: ", obj)
 
-            #self.assert_belief(SUBJ(subj))
             self.assert_belief(ROOT(root))
-            #self.assert_belief(OBJ(obj))
             self.assert_belief(SEQUENCE(subj, root, obj))
 
-            """ 
-            for i in range(len(deps)-1):
-                if i < root_index:
-                    if deps[i][1] == root_verb:
-                        print("Subj: ", deps[i])
-                        subj_index = i
-                        print(subj_index)
-                elif i > root_index:
-                    if deps[i][1] == root_verb:
-                        print("Obj: ", deps[i])
-                        obj_index = i
-                        print(obj_index)
-            """
-
-
         elif first_word == "what" or first_word == "which":
-            pass
+            pre_aux = ""
+            aux = ""
+            aux_index = 0
+            post_aux = ""
+            post_root = ""
+
+            # populating post-verb object
+            for i in range(root_index+1, len(deps) - 1):
+                if post_root == "":
+                    post_root = parser.get_lemma(deps[i][2])
+                else:
+                    post_root = post_root+" "+parser.get_lemma(deps[i][2])
+
+            # getting aux index and value
+            for i in range(1, len(deps) - 1):
+                if deps[i][0] == "aux":
+                    aux = parser.get_lemma(deps[i][2])
+                    aux_index = i
+
+            # getting pre-aux frame
+            for i in range(1, aux_index):
+                if len(pre_aux) == 0:
+                    pre_aux = parser.get_lemma(deps[i][2])
+                else:
+                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
+
+            # getting post-aux frame
+            for i in range(aux_index+1, root_index):
+                if len(post_aux) == 0:
+                    post_aux = parser.get_lemma(deps[i][2])
+                else:
+                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
+
+
+            print("\npre_aux: ", pre_aux)
+            print("aux: ", aux)
+            print("post_aux: ", post_aux)
+            print("verb: ", root)
+            print("post_root: ", post_root)
+
+            self.assert_belief(SEQUENCE(pre_aux, aux, post_aux, root, post_root))
+
 
         elif first_word == "when":
             pass
@@ -1799,10 +1816,40 @@ class assert_frames(Action):
 class join_seq(Action):
     def execute(self, *args):
        seq = str(args).split("'")
-       for i in range(3, len(seq), 4):
-           if i == 3:
+       new_seq = ""
+       print("seq:", seq)
+       if seq[1] == "Variable":
+           start_range = 3
+       else:
+           start_range = 5
+
+       if seq[:-4] == "Variable":
+           end_range = len(seq)
+       else:
+           end_range = len(seq) - 1
+
+       for i in range(start_range, end_range, 4):
+           if len(new_seq) == 0:
                new_seq = seq[i]
            else:
                new_seq = new_seq + " " + seq[i]
 
-       self.assert_belief(FS_STT(new_seq))
+       if start_range == 5:
+           new_seq = seq[1]+" "+new_seq
+
+       if end_range == len(seq) - 1:
+           new_seq = new_seq+" "+seq[len(seq)-2]
+
+       print(new_seq)
+       #self.assert_belief(FS_STT(new_seq))
+
+
+class aux_included(ActiveBelief):
+    def evaluate(self, x):
+
+        var = str(x).split("'")[3]
+        # Check for valid aux
+        if var == 'do':
+            return False
+        else:
+            return True

@@ -36,7 +36,7 @@ s1() >> [simulate_sensor("be", "time", "12.00")]
 s2() >> [simulate_sensor("be", "temperature", "25")]
 
 
-def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', 'D', 'I', 'V', 'L', 'O', 'E', 'U', 'C')
+def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', 'D', 'I', 'V', 'L', 'O', 'E', 'U', 'C', 'A')
 
 
 # Front-End STT
@@ -69,15 +69,26 @@ clkb() >> [clear_lkb()]
 # Reasoning
 +STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X), qreason()]
 
+# Polar questions
 qreason() / SEQUENCE("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), -SEQUENCE("AUX", X), +FS_STT(X)]
 
+# Who questions
 qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is") & INV_COP("YES")) >> [show_line("\nWHO case inverted copular...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
 qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO case normal copular...."), +INV_COP("YES"), join_seq(Z, Y, X), qreason()]
 qreason() / (SEQUENCE(X, Y, Z) & CASE("who")) >> [show_line("\nWHO case normal...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
-qreason() / (CASE("who") & ROOT("is") & INV_COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE("who"), -ROOT("is"), -INV_COP("YES")]
-qreason() / (CASE("who") & ROOT(X)) >> [show_line("\nqreason ended normal...."), -ROOT(X), -CASE("who")]
+# What questions
+qreason() / (SEQUENCE(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT case normal...."), -SEQUENCE(X, A, Y, V, O), join_seq(X, Y, A, V, O), qreason()]
+qreason() / (SEQUENCE(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT case normal...."), -SEQUENCE(X, A, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
+
+
+
+
+qreason() / (CASE(X) & ROOT(Y) & INV_COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE(X), -ROOT(Y), -INV_COP("YES")]
+qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal...."), -CASE(X), -ROOT(Y)]
 
 +FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
+
+
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
 +STT(X) / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "NOMINAL"), process_rule()]
