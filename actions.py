@@ -1839,7 +1839,7 @@ class aux_included(ActiveBelief):
 
         var = str(x).split("'")[3]
         # Check for valid aux
-        if var == 'do' or var == 'does':
+        if var in ['do', 'does', 'did']:
             return False
         else:
             return True
