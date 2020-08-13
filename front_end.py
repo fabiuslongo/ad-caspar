@@ -70,20 +70,21 @@ clkb() >> [clear_lkb()]
 +STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X), qreason()]
 
 # Polar questions
-qreason() / SEQUENCE("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), -SEQUENCE("AUX", X), +FS_STT(X)]
+qreason() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), -SEQ("AUX", X), +FS_STT(X)]
 
 # Who questions
-qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is") & INV_COP("YES")) >> [show_line("\nWHO case inverted copular...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
-qreason() / (SEQUENCE(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO case normal copular...."), +INV_COP("YES"), join_seq(Z, Y, X), qreason()]
-qreason() / (SEQUENCE(X, Y, Z) & CASE("who")) >> [show_line("\nWHO case normal...."), -SEQUENCE(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO case inverted copular...."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO case normal copular...."), +COP("YES"), join_seq(Z, Y, X), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO case normal...."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
 # What questions
-qreason() / (SEQUENCE(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT case normal...."), -SEQUENCE(X, A, Y, V, O), join_seq(X, Y, A, V, O), qreason()]
-qreason() / (SEQUENCE(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT case normal...."), -SEQUENCE(X, A, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT case aux ...."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT case copular...."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT case short inv cop...."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT case short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT case short...."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
 
 
-
-
-qreason() / (CASE(X) & ROOT(Y) & INV_COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE(X), -ROOT(Y), -INV_COP("YES")]
+qreason() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE(X), -ROOT(Y), -COP("YES")]
 qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal...."), -CASE(X), -ROOT(Y)]
 
 +FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]

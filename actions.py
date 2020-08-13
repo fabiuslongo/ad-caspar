@@ -205,12 +205,12 @@ class ACT_CROSS_VAR(Belief): pass
 # Query to Facts beliefs
 class AUX(Belief): pass
 class SNIPPLET(Belief): pass
-class SEQUENCE(Belief): pass
+class SEQ(Belief): pass
 class CASE(Belief): pass
 class SUBJ(Belief): pass
 class ROOT(Belief): pass
 class OBJ(Belief): pass
-class INV_COP(Belief): pass
+class COP(Belief): pass
 class qreason(Procedure): pass
 
 
@@ -1720,6 +1720,14 @@ class assert_frames(Action):
         subj = ""
         obj = ""
 
+        for i in range(len(deps) - 1):
+            if deps[i][0] == "ROOT":
+                root = parser.get_lemma(deps[i][2])
+                root_index = i
+                self.assert_belief(ROOT(root))
+                break
+
+        # polar question beginning with aux
         if deps[0][0] == "aux":
             snipplet = ""
             for i in range(1, len(deps)-1):
@@ -1732,12 +1740,6 @@ class assert_frames(Action):
         elif first_word.lower() in ["who", "what", "which", "when", "where"]:
             deps[0][2] = "Dummy"
             self.assert_belief(CASE(first_word.lower()))
-
-        for i in range(len(deps) - 1):
-            if deps[i][0] == "ROOT":
-                root = parser.get_lemma(deps[i][2])
-                root_index = i
-                break
 
         if first_word.lower() == "who":
 
@@ -1756,8 +1758,7 @@ class assert_frames(Action):
             print("subj: ", subj)
             print("obj: ", obj)
 
-            self.assert_belief(ROOT(root))
-            self.assert_belief(SEQUENCE(subj, root, obj))
+            self.assert_belief(SEQ(subj, root, obj))
 
         elif first_word == "what" or first_word == "which":
             pre_aux = ""
@@ -1778,6 +1779,7 @@ class assert_frames(Action):
                 if deps[i][0] == "aux":
                     aux = parser.get_lemma(deps[i][2])
                     aux_index = i
+                    break
 
             # getting pre-aux frame
             for i in range(1, aux_index):
@@ -1800,7 +1802,10 @@ class assert_frames(Action):
             print("verb: ", root)
             print("post_root: ", post_root)
 
-            self.assert_belief(SEQUENCE(pre_aux, aux, post_aux, root, post_root))
+            if len(pre_aux) == 0:
+                self.assert_belief(SEQ(post_aux, root, post_root))
+            else:
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
 
         elif first_word == "when":
@@ -1817,28 +1822,13 @@ class join_seq(Action):
     def execute(self, *args):
        seq = str(args).split("'")
        new_seq = ""
-       print("seq:", seq)
-       if seq[1] == "Variable":
-           start_range = 3
-       else:
-           start_range = 5
 
-       if seq[:-4] == "Variable":
-           end_range = len(seq)
-       else:
-           end_range = len(seq) - 1
-
-       for i in range(start_range, end_range, 4):
-           if len(new_seq) == 0:
-               new_seq = seq[i]
-           else:
-               new_seq = new_seq + " " + seq[i]
-
-       if start_range == 5:
-           new_seq = seq[1]+" "+new_seq
-
-       if end_range == len(seq) - 1:
-           new_seq = new_seq+" "+seq[len(seq)-2]
+       for s in seq:
+           if s not in ['(', ', ', '', 'Variable', '), ', '))', ')']:
+               if len(new_seq) == 0:
+                   new_seq = s
+               else:
+                   new_seq = new_seq + " " + s
 
        print(new_seq)
        #self.assert_belief(FS_STT(new_seq))
@@ -1849,7 +1839,7 @@ class aux_included(ActiveBelief):
 
         var = str(x).split("'")[3]
         # Check for valid aux
-        if var == 'do':
+        if var == 'do' or var == 'does':
             return False
         else:
             return True
