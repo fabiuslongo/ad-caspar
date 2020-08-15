@@ -67,25 +67,35 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_frames(X), qreason()]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_chunk(X), qreason()]
 
 # Polar questions
-qreason() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR case....\n"), -SEQ("AUX", X), +FS_STT(X)]
-
+qreason() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +FS_STT(X)]
 # Who questions
-qreason() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO case inverted copular...."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
-qreason() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO case normal copular...."), +COP("YES"), join_seq(Z, Y, X), qreason()]
-qreason() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO case normal...."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO inverted copular..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO normal copular..."), +COP("YES"), join_seq(Z, Y, X), qreason()]
+qreason() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO  normal..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
 # What questions
-qreason() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT case aux ...."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT case copular...."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT case short inv cop...."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT case short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT case short...."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT  aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT copular..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), qreason()]
+qreason() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT short..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
+# Where questions
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE aux..."), -LOC_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES")) >> [show_line("\nWHERE aux end..."), -LP("YES"), -SEQ(X, A, Y, V, O), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE prep: ", K), -LOC_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE prep end..."), -LP("YES"), -SEQ(X, A, Y, V, O), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A)) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("where")) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), qreason()]
+qreason() / (SEQ(V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE short..."), -LOC_PREP(K), join_seq(O, V, K, "Dummy"), qreason()]
+qreason() / (SEQ(V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(V, O), qreason()]
+
+# When questions
 
 
-qreason() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular...."), -CASE(X), -ROOT(Y), -COP("YES")]
-qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal...."), -CASE(X), -ROOT(Y)]
+qreason() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
+qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]
 
 +FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
 

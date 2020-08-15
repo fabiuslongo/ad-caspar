@@ -39,7 +39,10 @@ LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
 EMPTY_HKB_AFTER_REASONING = config.getboolean('LKB', 'EMPTY_HKB_AFTER_REASONING')
 NESTED_REASONING = config.getboolean('REASONING', 'NESTED_REASONING')
-
+PAST_TENSE_POS = config.get('QA', 'PAST_TENSE_POS')
+THIRD_TENSE_POS = config.get('QA', 'THIRD_TENSE_POS')
+LOC_PREPS = str(config.get('QA', 'LOC_PREPS')).split(", ")
+TIME_PREPS = str(config.get('QA', 'TIME_PREPS')).split(", ")
 
 parser = Parse(VERBOSE)
 fol_manager = ManageFols(VERBOSE, LANGUAGE)
@@ -126,8 +129,6 @@ class WAIT(Belief): pass
 class OUT(Reactor): pass
 class MSG(Reactor): pass
 
-
-
 # domotic reactive routines
 class r1(Procedure): pass
 class r2(Procedure): pass
@@ -202,7 +203,7 @@ class GEN_MASK(Belief): pass
 class ACT_CROSS_VAR(Belief): pass
 
 
-# Query to Facts beliefs
+# Question Answering beliefs
 class AUX(Belief): pass
 class SNIPPLET(Belief): pass
 class SEQ(Belief): pass
@@ -212,6 +213,10 @@ class ROOT(Belief): pass
 class OBJ(Belief): pass
 class COP(Belief): pass
 class qreason(Procedure): pass
+class LOC_PREP(Belief): pass
+class LP(Belief): pass
+class TIME_PREP(Belief): pass
+class CAND(Belief): pass
 
 
 
@@ -1708,7 +1713,7 @@ class check_last_char(ActiveBelief):
             return False
 
 
-class assert_frames(Action):
+class assert_chunk(Action):
     def execute(self, arg1):
         sentence = str(arg1).split("'")[3]
 
@@ -1735,7 +1740,7 @@ class assert_frames(Action):
                     snipplet = parser.get_lemma(deps[i][2])
                 else:
                     snipplet = snipplet+" "+parser.get_lemma(deps[i][2])
-            self.assert_belief(SEQUENCE("AUX", snipplet))
+            self.assert_belief(SEQ("AUX", snipplet))
 
         elif first_word.lower() in ["who", "what", "which", "when", "where"]:
             deps[0][2] = "Dummy"
@@ -1809,13 +1814,116 @@ class assert_frames(Action):
 
 
         elif first_word == "when":
-            pass
+
+            pre_aux = ""
+            aux = ""
+            aux_index = 0
+            post_aux = ""
+            post_root = ""
+
+            # populating post-verb object
+            for i in range(root_index + 1, len(deps) - 1):
+                if post_root == "":
+                    post_root = parser.get_lemma(deps[i][2])
+                else:
+                    post_root = post_root + " " + parser.get_lemma(deps[i][2])
+
+            # getting aux index and value
+            for i in range(1, len(deps) - 1):
+                if deps[i][0] in ["aux", "auxpass"]:
+                    aux = parser.get_lemma(deps[i][2])
+                    aux_index = i
+                    break
+
+            # getting pre-aux frame
+            for i in range(1, aux_index):
+                if len(pre_aux) == 0:
+                    pre_aux = parser.get_lemma(deps[i][2])
+                else:
+                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
+
+            # getting post-aux frame
+            for i in range(aux_index + 1, root_index):
+                if len(post_aux) == 0:
+                    post_aux = parser.get_lemma(deps[i][2])
+                else:
+                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
+
+            print("\npre_aux: ", pre_aux)
+            print("aux: ", aux)
+            print("post_aux: ", post_aux)
+            print("verb: ", root)
+            print("post_root: ", post_root)
+
+            for lc in TIME_PREPS:
+                self.assert_belief(TIME_PREP(lc))
+
+            if len(aux) == 0:
+                self.assert_belief(SEQ(root, post_root))
+            else:
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+
+
 
         elif first_word == "where":
-            pass
+            pre_aux = ""
+            aux = ""
+            aux_index = 0
+            post_aux = ""
+            post_root = ""
+            compl_root = ""
+
+            # populating post-verb object
+            for i in range(root_index + 1, len(deps) - 1):
+                if deps[i][0] == "acl" or deps[i][0] == "ccomp":
+                    compl_root = parser.get_lemma(deps[i][2])
+                else:
+                    if post_root == "":
+                        post_root = parser.get_lemma(deps[i][2])
+                    else:
+                        post_root = post_root + " " + parser.get_lemma(deps[i][2])
+
+            # getting aux index and value
+            for i in range(1, len(deps) - 1):
+                if deps[i][0] in ["aux", "auxpass"]:
+                    aux = parser.get_lemma(deps[i][2])
+                    aux_index = i
+                    break
+
+            # getting pre-aux frame
+            for i in range(1, aux_index):
+                if len(pre_aux) == 0:
+                    pre_aux = parser.get_lemma(deps[i][2])
+                else:
+                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
+
+            # getting post-aux frame
+            for i in range(aux_index + 1, root_index):
+                if len(post_aux) == 0:
+                    post_aux = parser.get_lemma(deps[i][2])
+                else:
+                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
+
+            print("\npre_aux: ", pre_aux)
+            print("aux: ", aux)
+            print("post_aux: ", post_aux)
+            print("verb: ", root)
+            print("post_root: ", post_root)
+            print("compl_root: ", compl_root)
+
+            if deps[len(deps)-2][0] != "prep":
+                self.assert_belief(LP("YES"))
+                for lc in LOC_PREPS:
+                    self.assert_belief(LOC_PREP(lc))
+
+            if len(aux) == 0:
+                self.assert_belief(SEQ(root, post_root))
+            else:
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+
+
 
         parser.flush()
-
 
 
 class join_seq(Action):
@@ -1831,7 +1939,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       #self.assert_belief(FS_STT(new_seq))
+       #self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):
