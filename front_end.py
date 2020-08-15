@@ -90,7 +90,6 @@ qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A)) >> [show_line
 qreason() / (SEQ(X, A, Y, V, O) & CASE("where")) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), qreason()]
 qreason() / (SEQ(V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE short..."), -LOC_PREP(K), join_seq(O, V, K, "Dummy"), qreason()]
 qreason() / (SEQ(V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(V, O), qreason()]
-
 # When questions
 qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A) & TIME_PREP(K)) >> [show_line("\nWHEN aux..."), -TIME_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), qreason()]
 qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux end..."), -SEQ(X, A, Y, V, O), qreason()]
