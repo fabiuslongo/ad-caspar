@@ -67,7 +67,7 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_chunk(X), qreason()]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_sequence(X), qreason()]
 
 # Polar questions
 qreason() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +FS_STT(X)]
@@ -92,7 +92,14 @@ qreason() / (SEQ(V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line(
 qreason() / (SEQ(V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(V, O), qreason()]
 
 # When questions
-
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A) & TIME_PREP(K)) >> [show_line("\nWHEN aux..."), -TIME_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux end..."), -SEQ(X, A, Y, V, O), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN prep: ", K), -TIME_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN prep end..."), -SEQ(X, A, Y, V, O), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), qreason()]
+qreason() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), qreason()]
+qreason() / (SEQ(V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(O, V, K, "Dummy"), qreason()]
+qreason() / (SEQ(V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(V, O), qreason()]
 
 qreason() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
 qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]

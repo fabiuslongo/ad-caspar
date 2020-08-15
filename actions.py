@@ -1713,7 +1713,7 @@ class check_last_char(ActiveBelief):
             return False
 
 
-class assert_chunk(Action):
+class assert_sequence(Action):
     def execute(self, arg1):
         sentence = str(arg1).split("'")[3]
 
