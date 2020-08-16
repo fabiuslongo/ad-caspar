@@ -117,9 +117,6 @@ class t(Procedure): pass
 class HOTWORD_DETECTED(Reactor): pass
 class STT(Reactor): pass
 
-# Fact Shape STT
-class FS_STT(Reactor): pass
-
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
 class REASON(Belief): pass
@@ -212,6 +209,7 @@ class SUBJ(Belief): pass
 class ROOT(Belief): pass
 class OBJ(Belief): pass
 class COP(Belief): pass
+class getcand(Procedure): pass
 class qreason(Procedure): pass
 class LOC_PREP(Belief): pass
 class LP(Belief): pass
@@ -299,7 +297,7 @@ class preprocess_clause(Action):
         mode = str(args[2]())
         type = str(args[3]())
 
-        print("\n--------- NEW GENERALIZATION ---------\n ")
+        print("\n--------- NEW DEFINITE CLAUSE ---------\n ")
         print("gen_mask: " + gen_mask)
         print("mode: " + mode)
         print("type: " + type + "\n")
@@ -1921,8 +1919,6 @@ class assert_sequence(Action):
             else:
                 self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
-
-
         parser.flush()
 
 
@@ -1939,7 +1935,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       #self.assert_belief(CAND(new_seq))
+       self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):

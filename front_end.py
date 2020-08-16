@@ -67,43 +67,43 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning into fact shape....\n"), assert_sequence(X), qreason()]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), assert_sequence(X), getcand(), qreason()]
 
 # Polar questions
-qreason() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +FS_STT(X)]
+getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +CAND(X)]
 # Who questions
-qreason() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO inverted copular..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
-qreason() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO normal copular..."), +COP("YES"), join_seq(Z, Y, X), qreason()]
-qreason() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO  normal..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), qreason()]
+getcand() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO inverted copular..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), getcand()]
+getcand() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO normal copular..."), +COP("YES"), join_seq(Z, Y, X), getcand()]
+getcand() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO  normal..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), getcand()]
 # What questions
-qreason() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT  aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT copular..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), qreason()]
-qreason() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT short..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), qreason()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT  aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT copular..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT short..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
 # Where questions
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE aux..."), -LOC_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES")) >> [show_line("\nWHERE aux end..."), -LP("YES"), -SEQ(X, A, Y, V, O), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE prep: ", K), -LOC_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE prep end..."), -LP("YES"), -SEQ(X, A, Y, V, O), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A)) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("where")) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), qreason()]
-qreason() / (SEQ(V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE short..."), -LOC_PREP(K), join_seq(O, V, K, "Dummy"), qreason()]
-qreason() / (SEQ(V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(V, O), qreason()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE aux..."), -LOC_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES")) >> [show_line("\nWHERE aux end..."), -LP("YES"), -SEQ(X, A, Y, V, O), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE prep: ", K), -LOC_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE prep end..."), -LP("YES"), -SEQ(X, A, Y, V, O), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A)) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("where")) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(V, O) & CASE("where") & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE short..."), -LOC_PREP(K), join_seq(O, V, K, "Dummy"), getcand()]
+getcand() / (SEQ(V, O) & CASE("where") & LP("YES")) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(V, O), getcand()]
 # When questions
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A) & TIME_PREP(K)) >> [show_line("\nWHEN aux..."), -TIME_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux end..."), -SEQ(X, A, Y, V, O), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN prep: ", K), -TIME_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN prep end..."), -SEQ(X, A, Y, V, O), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), qreason()]
-qreason() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), qreason()]
-qreason() / (SEQ(V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(O, V, K, "Dummy"), qreason()]
-qreason() / (SEQ(V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(V, O), qreason()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A) & TIME_PREP(K)) >> [show_line("\nWHEN aux..."), -TIME_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux end..."), -SEQ(X, A, Y, V, O), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN prep: ", K), -TIME_PREP(K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN prep end..."), -SEQ(X, A, Y, V, O), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(O, V, K, "Dummy"), getcand()]
+getcand() / (SEQ(V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(V, O), getcand()]
 
-qreason() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
-qreason() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]
+getcand() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
+getcand() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]
 
-+FS_STT(X) / (WAKE("ON") & REASON("ON")) >> [+GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL")]
+qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
 
 
 
