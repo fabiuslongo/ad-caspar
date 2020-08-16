@@ -1635,8 +1635,11 @@ class create_precross(Action):
 
         pn_label = self.get_par_number(verb_act_merged)
 
-        act_merged = prep_label + "(" + verb_act_merged[
-                                        :-pn_label] + "(" + subj_act_merged + ", " + obj_act_merged + ")"
+        if pn_label > 0:
+            act_merged = prep_label + "(" + verb_act_merged[:-pn_label] + "(" + subj_act_merged + ", " + obj_act_merged + ")"
+        else:
+            act_merged = prep_label + "(" + verb_act_merged + "(" + subj_act_merged + ", " + obj_act_merged + ")"
+
         for i in range(pn_label):
             act_merged = act_merged + ")"
         act_merged = act_merged + ", " + prep_obj + ")"

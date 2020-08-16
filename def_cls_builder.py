@@ -56,6 +56,8 @@ gnd_actions() >> [show_line("\ngrounding actions done.")]
 apply_adv() / (ACTION(I, V, D, X, Y) & ADV(I, D, L)) >> [show_line("\napplying adverbs to actions label: ", L), -ACTION(I, V, D, X, Y), -ADV(I, D, L), adv_to_action(I, V, D, X, Y, L), apply_adv()]
 apply_adv() / (ACTION(I, V, D, X, Y)) >> [show_line("\nadverbs application done.")]
 
+
+
 # actions to clauses
 actions_to_clauses() / (PRE_CROSS(I, D, K) & PREP(I, D, L, O)) >> [show_line("\nfeeding pre-cross: ", L), -PRE_CROSS(I, D, K), -PREP(I, D, L, O), feed_precross(I, D, K, L, O), actions_to_clauses()]
 actions_to_clauses() / (ACTION(I, T, O, Y, Z) & ACTION(I, V, D, X, O) & PREP(I, O, L, K)) >> [show_line("\ncreating pre-cross: ", L),-ACTION(I, T, O, Y, Z), -PREP(I, O, L, K), create_precross(I, T, O, Y, Z, L, K), actions_to_clauses()]
@@ -63,6 +65,8 @@ actions_to_clauses() / (ACTION(I, V, D, X, O) & PRE_CROSS(I, O, K)) >> [show_lin
 actions_to_clauses() / (ACTION(I, T, O, Y, Z) & ACTION(I, V, D, X, O)) >> [show_line("\napplying action crossed dav: ", O), -ACTION(I, T, O, Y, Z), -ACTION(I, V, D, X, O), merge_act(I, T, Y, Z, V, D, X), actions_to_clauses()]
 actions_to_clauses() / ACTION(I, V, D, X, Y) >> [show_line("\nturning action to clause: ", V), -ACTION(I, V, D, X, Y), act_to_clause(I, V, D, X, Y), actions_to_clauses()]
 actions_to_clauses() >> [show_line("\nactions to clauses done. "), finalize_clause()]
+
+
 
 # applying preps and finalization to clauses
 finalize_clause() / (CLAUSE(I, D, X) & PREP(I, D, L, O)) >> [show_line("\napplying prep to clauses..."), -CLAUSE(I, D, X), -PREP(I, D, L, O), prep_to_clause(I, D, X, L, O), finalize_clause()]
