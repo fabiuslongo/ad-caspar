@@ -362,7 +362,7 @@ class preprocess_clause(Action):
                             b[0] = new_value
 
                 # leveraging NER for adverbs detection
-                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD']:
+                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD'] and v[0][0] == 'e':
                     v[1] = self.get_lemma(v[1])+":RB"
 
             vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
@@ -1839,7 +1839,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       #self.assert_belief(CAND(new_seq))
+       self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):
