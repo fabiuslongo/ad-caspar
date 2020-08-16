@@ -1720,8 +1720,7 @@ class assert_sequence(Action):
 
         first_word = parser.get_lemma(deps[0][2]).lower()
         root_index = 0
-        subj = ""
-        obj = ""
+        root = ""
 
         for i in range(len(deps) - 1):
             if deps[i][0] == "ROOT":
@@ -1743,75 +1742,6 @@ class assert_sequence(Action):
         elif first_word.lower() in ["who", "what", "which", "when", "where"]:
             deps[0][2] = "Dummy"
             self.assert_belief(CASE(first_word.lower()))
-
-        if first_word.lower() == "who":
-
-            for i in range(0, root_index):
-                if i == 0:
-                    subj = parser.get_lemma(deps[i][2])
-                else:
-                    subj = subj+" "+parser.get_lemma(deps[i][2])
-
-            for i in range(root_index+1, len(deps)-1):
-                if i == root_index+1:
-                    obj = parser.get_lemma(deps[i][2])
-                else:
-                    obj = obj+" "+parser.get_lemma(deps[i][2])
-
-            print("subj: ", subj)
-            print("obj: ", obj)
-
-            self.assert_belief(SEQ(subj, root, obj))
-
-        elif first_word == "what" or first_word == "which":
-            pre_aux = ""
-            aux = ""
-            aux_index = 0
-            post_aux = ""
-            post_root = ""
-
-            # populating post-verb object
-            for i in range(root_index+1, len(deps) - 1):
-                if post_root == "":
-                    post_root = parser.get_lemma(deps[i][2])
-                else:
-                    post_root = post_root+" "+parser.get_lemma(deps[i][2])
-
-            # getting aux index and value
-            for i in range(1, len(deps) - 1):
-                if deps[i][0] == "aux":
-                    aux = parser.get_lemma(deps[i][2])
-                    aux_index = i
-                    break
-
-            # getting pre-aux frame
-            for i in range(1, aux_index):
-                if len(pre_aux) == 0:
-                    pre_aux = parser.get_lemma(deps[i][2])
-                else:
-                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
-
-            # getting post-aux frame
-            for i in range(aux_index+1, root_index):
-                if len(post_aux) == 0:
-                    post_aux = parser.get_lemma(deps[i][2])
-                else:
-                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
-
-
-            print("\npre_aux: ", pre_aux)
-            print("aux: ", aux)
-            print("post_aux: ", post_aux)
-            print("verb: ", root)
-            print("post_root: ", post_root)
-
-            if len(pre_aux) == 0:
-                self.assert_belief(SEQ(post_aux, root, post_root))
-            else:
-                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
-
-
-        elif first_word == "when":
 
             pre_aux = ""
             aux = ""
@@ -1853,71 +1783,45 @@ class assert_sequence(Action):
             print("verb: ", root)
             print("post_root: ", post_root)
 
-            for lc in TIME_PREPS:
-                self.assert_belief(TIME_PREP(lc))
 
-            if len(aux) == 0:
-                self.assert_belief(SEQ(root, post_root))
-            else:
-                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+            if first_word.lower() == "who":
 
-
-
-        elif first_word == "where":
-            pre_aux = ""
-            aux = ""
-            aux_index = 0
-            post_aux = ""
-            post_root = ""
-            compl_root = ""
-
-            # populating post-verb object
-            for i in range(root_index + 1, len(deps) - 1):
-                if deps[i][0] == "acl" or deps[i][0] == "ccomp":
-                    compl_root = parser.get_lemma(deps[i][2])
-                else:
-                    if post_root == "":
-                        post_root = parser.get_lemma(deps[i][2])
-                    else:
-                        post_root = post_root + " " + parser.get_lemma(deps[i][2])
-
-            # getting aux index and value
-            for i in range(1, len(deps) - 1):
-                if deps[i][0] in ["aux", "auxpass"]:
-                    aux = parser.get_lemma(deps[i][2])
-                    aux_index = i
-                    break
-
-            # getting pre-aux frame
-            for i in range(1, aux_index):
                 if len(pre_aux) == 0:
-                    pre_aux = parser.get_lemma(deps[i][2])
+                    self.assert_belief(SEQ(post_aux, root, post_root))
                 else:
-                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
+                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
-            # getting post-aux frame
-            for i in range(aux_index + 1, root_index):
-                if len(post_aux) == 0:
-                    post_aux = parser.get_lemma(deps[i][2])
+
+            elif first_word == "what" or first_word == "which":
+
+                if len(pre_aux) == 0:
+                    self.assert_belief(SEQ(post_aux, root, post_root))
                 else:
-                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
+                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
-            print("\npre_aux: ", pre_aux)
-            print("aux: ", aux)
-            print("post_aux: ", post_aux)
-            print("verb: ", root)
-            print("post_root: ", post_root)
-            print("compl_root: ", compl_root)
 
-            if deps[len(deps)-2][0] != "prep":
-                self.assert_belief(LP("YES"))
-                for lc in LOC_PREPS:
-                    self.assert_belief(LOC_PREP(lc))
+            elif first_word == "when":
 
-            if len(aux) == 0:
-                self.assert_belief(SEQ(root, post_root))
-            else:
-                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+
+                for lc in TIME_PREPS:
+                    self.assert_belief(TIME_PREP(lc))
+
+                if len(aux) == 0:
+                    self.assert_belief(SEQ(root, post_root))
+                else:
+                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+
+            elif first_word == "where":
+
+                if deps[len(deps)-2][0] != "prep":
+                    self.assert_belief(LP("YES"))
+                    for lc in LOC_PREPS:
+                        self.assert_belief(LOC_PREP(lc))
+
+                if len(aux) == 0:
+                    self.assert_belief(SEQ(root, post_root))
+                else:
+                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
         parser.flush()
 
@@ -1935,7 +1839,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       self.assert_belief(CAND(new_seq))
+       #self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):

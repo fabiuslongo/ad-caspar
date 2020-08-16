@@ -72,15 +72,16 @@ clkb() >> [clear_lkb()]
 # Polar questions
 getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +CAND(X)]
 # Who questions
-getcand() / (SEQ(X, Y, Z) & CASE("who") & COP("YES")) >> [show_line("\nWHO inverted copular..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), getcand()]
-getcand() / (SEQ(X, Y, Z) & CASE("who") & ROOT("is")) >> [show_line("\nWHO normal copular..."), +COP("YES"), join_seq(Z, Y, X), getcand()]
-getcand() / (SEQ(X, Y, Z) & CASE("who")) >> [show_line("\nWHO  normal..."), -SEQ(X, Y, Z), join_seq(X, Y, Z), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("who") & COP("YES")) >> [show_line("\nWHO short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("who") & ROOT("is")) >> [show_line("\nWHO short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("who")) >> [show_line("\nWHO short..."), -SEQ(Y, V, O), join_seq(Y, V, O, "Dummy"), getcand()]
 # What questions
-getcand() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT  aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT copular..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), getcand()]
 getcand() / (SEQ(Y, V, O) & CASE("what") & COP("YES")) >> [show_line("\nWHAT short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
 getcand() / (SEQ(Y, V, O) & CASE("what") & ROOT("is")) >> [show_line("\nWHAT short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT short..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("what")) >> [show_line("\nWHAT short..."), -SEQ(Y, V, O), join_seq(Y, V, O, "Dummy"), getcand()]
 # Where questions
 getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES") & LOC_PREP(K)) >> [show_line("\nWHERE aux..."), -LOC_PREP(K), join_seq(X, Y, A, V, O, K, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O) & CASE("where") & aux_included(A) & LP("YES")) >> [show_line("\nWHERE aux end..."), -LP("YES"), -SEQ(X, A, Y, V, O), getcand()]
