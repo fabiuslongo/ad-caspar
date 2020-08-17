@@ -98,6 +98,7 @@ class check_conds(Procedure): pass
 class go(Procedure): pass
 
 # STT Front-End procedures
+class d(Procedure): pass
 class w(Procedure): pass
 class l(Procedure): pass
 class r(Procedure): pass
@@ -964,7 +965,7 @@ class assert_command(Action):
 
         print(sentence)
 
-        deps = parser.get_deps(sentence)
+        deps = parser.get_deps(sentence, True)
 
         # Dependencies Uniquezation
         Ren = Uniquelizer(VERBOSE, LANGUAGE)
