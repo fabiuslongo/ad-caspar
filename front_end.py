@@ -76,7 +76,8 @@ getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +C
 getcand() / (SEQ(X, A, Y, V, O) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(Y, V, O) & CASE("who") & COP("YES")) >> [show_line("\nWHO short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
 getcand() / (SEQ(Y, V, O) & CASE("who") & ROOT("is")) >> [show_line("\nWHO short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("who")) >> [show_line("\nWHO short..."), -SEQ(Y, V, O), join_seq(Y, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("who") & ROOT("was")) >> [show_line("\nWHO short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
+getcand() / (SEQ(Y, V, O) & CASE("who")) >> [show_line("\nWHO short..."), -SEQ(Y, V, O), join_seq(Y, V, O, "Dummy"), join_seq("Dummy", Y, V, O), getcand()]
 # What questions
 getcand() / (SEQ(X, A, Y, V, O) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT aux..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, A, V, O), join_seq(X, Y, A, V, O, "is Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O) & CASE("what")) >> [show_line("\nWHAT copular..."), -SEQ(X, A, Y, V, O), join_seq("Dummy is", X, Y, V, O), join_seq(X, Y, V, O, "is Dummy"), getcand()]
@@ -99,8 +100,8 @@ getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\n
 getcand() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN prep end..."), -SEQ(X, A, Y, V, O), getcand()]
 getcand() / (SEQ(X, A, Y, V, O) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, V, O, "Dummy"), getcand()]
-getcand() / (SEQ(V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(O, V, K, "Dummy"), getcand()]
-getcand() / (SEQ(V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(V, O), getcand()]
+getcand() / (SEQ(X, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(X, V, O, K, "Dummy"), getcand()]
+getcand() / (SEQ(X, V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(X, V, O), getcand()]
 
 getcand() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
 getcand() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]

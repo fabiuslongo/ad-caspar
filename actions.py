@@ -1762,7 +1762,7 @@ class assert_sequence(Action):
 
             # getting aux index and value
             for i in range(1, len(deps) - 1):
-                if deps[i][0] in ["aux", "auxpass"]:
+                if deps[i][0] in ["aux", "auxpass"] and i < root_index:
                     aux = parser.get_lemma(deps[i][2])
                     aux_index = i
                     break
@@ -1811,7 +1811,7 @@ class assert_sequence(Action):
                     self.assert_belief(TIME_PREP(lc))
 
                 if len(aux) == 0:
-                    self.assert_belief(SEQ(root, post_root))
+                    self.assert_belief(SEQ(post_aux, root, post_root))
                 else:
                     self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
