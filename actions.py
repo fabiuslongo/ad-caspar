@@ -43,6 +43,8 @@ PAST_TENSE_POS = config.get('QA', 'PAST_TENSE_POS')
 THIRD_TENSE_POS = config.get('QA', 'THIRD_TENSE_POS')
 LOC_PREPS = str(config.get('QA', 'LOC_PREPS')).split(", ")
 TIME_PREPS = str(config.get('QA', 'TIME_PREPS')).split(", ")
+COP_VERB = str(config.get('QA', 'COP_VERB')).split(", ")
+
 
 parser = Parse(VERBOSE)
 fol_manager = ManageFols(VERBOSE, LANGUAGE)
@@ -216,6 +218,7 @@ class LOC_PREP(Belief): pass
 class LP(Belief): pass
 class TIME_PREP(Belief): pass
 class CAND(Belief): pass
+class ANSWERED(Belief): pass
 
 
 
@@ -872,6 +875,8 @@ class reason(Action):
 
         if bc_result is not False:
             self.assert_belief(OUT("From HKB: True"))
+            self.assert_belief(ANSWERED("YES"))
+
 
         elif bc_result is False and NESTED_REASONING:
 
@@ -885,7 +890,7 @@ class reason(Action):
             else:
                 print("\nResult: ", nested_result)
                 self.assert_belief(OUT("From HKB: True"))
-
+                self.assert_belief(ANSWERED("YES"))
 
         if LKB_USAGE and bc_result is False and nested_result is False:
 
@@ -906,6 +911,7 @@ class reason(Action):
 
             if bc_result is not False:
                 self.assert_belief(OUT("From LKB: True"))
+                self.assert_belief(ANSWERED("YES"))
 
             elif bc_result is False and NESTED_REASONING:
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
@@ -918,7 +924,7 @@ class reason(Action):
                 else:
                     print("\nResult: ", nested_result)
                     self.assert_belief(OUT("From LKB: True"))
-
+                    self.assert_belief(ANSWERED("YES"))
 
             reason_keys = lkbm.get_last_keys()
             print("\nreason keys:", reason_keys)
@@ -1730,7 +1736,6 @@ class assert_sequence(Action):
             if deps[i][0] == "ROOT":
                 root = parser.get_lemma(deps[i][2])
                 root_index = i
-                self.assert_belief(ROOT(root))
                 break
 
         # polar question beginning with aux
@@ -1752,13 +1757,23 @@ class assert_sequence(Action):
             aux_index = 0
             post_aux = ""
             post_root = ""
+            compl_root = ""
 
-            # populating post-verb object
+            # populating post-verb chunk
             for i in range(root_index + 1, len(deps) - 1):
-                if post_root == "":
-                    post_root = parser.get_lemma(deps[i][2])
+                if deps[i][0] == "ccomp" and parser.get_lemma(deps[i][1]) == root:
+                    compl_root = parser.get_lemma(deps[i][2])
                 else:
-                    post_root = post_root + " " + parser.get_lemma(deps[i][2])
+                    if post_root == "":
+                        post_root = parser.get_lemma(deps[i][2])
+                    else:
+                        post_root = post_root + " " + parser.get_lemma(deps[i][2])
+
+            if len(compl_root) > 0:
+                self.assert_belief(ROOT(root+" "+compl_root))
+            else:
+                self.assert_belief(ROOT(root))
+
 
             # getting aux index and value
             for i in range(1, len(deps) - 1):
@@ -1786,7 +1801,7 @@ class assert_sequence(Action):
             print("post_aux: ", post_aux)
             print("verb: ", root)
             print("post_root: ", post_root)
-
+            print("compl_root: ", compl_root)
 
             if first_word.lower() == "who":
 
@@ -1795,14 +1810,9 @@ class assert_sequence(Action):
                 else:
                     self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
-
             elif first_word == "what" or first_word == "which":
 
-                if len(pre_aux) == 0:
-                    self.assert_belief(SEQ(post_aux, root, post_root))
-                else:
-                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
-
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, compl_root, post_root))
 
             elif first_word == "when":
 
@@ -1816,6 +1826,9 @@ class assert_sequence(Action):
                     self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
 
             elif first_word == "where":
+
+                if len(compl_root) > 0:
+                    root = root+" "+compl_root
 
                 if deps[len(deps)-2][0] != "prep":
                     self.assert_belief(LP("YES"))
@@ -1855,3 +1868,29 @@ class aux_included(ActiveBelief):
             return False
         else:
             return True
+
+
+class check_null(ActiveBelief):
+    def evaluate(self, x, y, z):
+
+        var1 = str(x).split("'")[3]
+        var2 = str(y).split("'")[3]
+        var3 = str(z).split("'")[3]
+
+        # Check for valid aux
+        if var1 != "" and var2 != "" and var3 != "":
+            return True
+        else:
+            return False
+
+
+class check_cop(ActiveBelief):
+    def evaluate(self, x):
+
+        var = str(x).split("'")[3]
+
+        # Check for valid aux
+        if var in COP_VERB:
+            return True
+        else:
+            return False
