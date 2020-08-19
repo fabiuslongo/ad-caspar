@@ -1796,10 +1796,7 @@ class assert_sequence(Action):
 
             if first_word.lower() == "who":
 
-                if len(pre_aux) == 0:
-                    self.assert_belief(SEQ(post_aux, root, post_root))
-                else:
-                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, compl_root, post_root))
 
             elif first_word == "what" or first_word == "which":
 

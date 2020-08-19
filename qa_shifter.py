@@ -39,7 +39,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       self.assert_belief(CAND(new_seq))
+       # self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):
@@ -53,7 +53,7 @@ class aux_included(ActiveBelief):
             return True
 
 
-class check_null(ActiveBelief):
+class all_not_null(ActiveBelief):
     def evaluate(self, x, y, z):
 
         var1 = str(x).split("'")[3]
@@ -62,6 +62,20 @@ class check_null(ActiveBelief):
 
         # Check for valid aux
         if var1 != "" and var2 != "" and var3 != "":
+            return True
+        else:
+            return False
+
+
+class all_null(ActiveBelief):
+    def evaluate(self, x, y, z):
+
+        var1 = str(x).split("'")[3]
+        var2 = str(y).split("'")[3]
+        var3 = str(z).split("'")[3]
+
+        # Check for valid aux
+        if var1 == "" and var2 == "" and var3 == "":
             return True
         else:
             return False
@@ -87,15 +101,14 @@ getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +C
 getcand() / SEQ(X) >> [show_line("\nPOLAR....\n"), -SEQ(X), +CAND(X)]
 
 # Who questions
-getcand() / (SEQ(X, A, Y, V, O) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("who") & COP("YES")) >> [show_line("\nWHO short inv cop..."), -SEQ(Y, V, O), join_seq("Dummy", Y, V, O), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("who") & ROOT("is")) >> [show_line("\nWHO short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("who") & ROOT("was")) >> [show_line("\nWHO short cop..."), +COP("YES"), join_seq(O, V, Y, "Dummy"), getcand()]
-getcand() / (SEQ(Y, V, O) & CASE("who")) >> [show_line("\nWHO short..."), -SEQ(Y, V, O), join_seq(Y, V, O, "Dummy"), join_seq("Dummy", Y, V, O), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO short cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO short inv cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 
 # What questions
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & check_null(X, A, Y)) >> [show_line("\nWHAT test not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & check_null(X, A, Y)) >> [show_line("\nWHAT test not null 2..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & all_not_null(X, A, Y)) >> [show_line("\nWHAT test not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & all_not_null(X, A, Y)) >> [show_line("\nWHAT test not null 2..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & check_cop(V)) >> [show_line("\nWHAT test cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), join_seq(K, X, Y, A, O, V, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT test..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what")) >> [show_line("\nWHAT test 2..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
