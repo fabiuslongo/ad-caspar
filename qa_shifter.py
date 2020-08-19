@@ -104,6 +104,8 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y) & check_cop
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO aux cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who")) >> [show_line("\nWHO normal..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
+
 
 # What questions
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & all_not_null(X, A, Y)) >> [show_line("\nWHAT test not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
