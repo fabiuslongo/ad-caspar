@@ -204,24 +204,15 @@ class ACT_CROSS_VAR(Belief): pass
 
 
 # Question Answering beliefs
-class AUX(Belief): pass
-class SNIPPLET(Belief): pass
+
 class SEQ(Belief): pass
+class CAND(Belief): pass
+class ANSWERED(Belief): pass
 class CASE(Belief): pass
-class SUBJ(Belief): pass
-class ROOT(Belief): pass
-class OBJ(Belief): pass
-class COP(Belief): pass
-class getcand(Procedure): pass
-class qreason(Procedure): pass
 class LOC_PREP(Belief): pass
 class LP(Belief): pass
 class TIME_PREP(Belief): pass
-class CAND(Belief): pass
-class ANSWERED(Belief): pass
-
-
-
+class ROOT(Belief): pass
 
 
 class set_wait(Action):
@@ -1839,58 +1830,10 @@ class assert_sequence(Action):
                     self.assert_belief(SEQ(root, post_root))
                 else:
                     self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+        else:
+            self.assert_belief(SEQ(sentence[:-1]))
+
 
         parser.flush()
 
 
-class join_seq(Action):
-    def execute(self, *args):
-       seq = str(args).split("'")
-       new_seq = ""
-
-       for s in seq:
-           if s not in ['(', ', ', '', 'Variable', '), ', '))', ')']:
-               if len(new_seq) == 0:
-                   new_seq = s
-               else:
-                   new_seq = new_seq + " " + s
-
-       print(new_seq)
-       self.assert_belief(CAND(new_seq))
-
-
-class aux_included(ActiveBelief):
-    def evaluate(self, x):
-
-        var = str(x).split("'")[3]
-        # Check for valid aux
-        if var in ['do', 'does', 'did']:
-            return False
-        else:
-            return True
-
-
-class check_null(ActiveBelief):
-    def evaluate(self, x, y, z):
-
-        var1 = str(x).split("'")[3]
-        var2 = str(y).split("'")[3]
-        var3 = str(z).split("'")[3]
-
-        # Check for valid aux
-        if var1 != "" and var2 != "" and var3 != "":
-            return True
-        else:
-            return False
-
-
-class check_cop(ActiveBelief):
-    def evaluate(self, x):
-
-        var = str(x).split("'")[3]
-
-        # Check for valid aux
-        if var in COP_VERB:
-            return True
-        else:
-            return False
