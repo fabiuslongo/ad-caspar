@@ -16,7 +16,6 @@ class CASE(Belief): pass
 class SUBJ(Belief): pass
 class ROOT(Belief): pass
 class OBJ(Belief): pass
-class COP(Belief): pass
 class getcand(Procedure): pass
 class qreason(Procedure): pass
 class LOC_PREP(Belief): pass
@@ -103,7 +102,7 @@ getcand() / SEQ(X) >> [show_line("\nPOLAR....\n"), -SEQ(X), +CAND(X)]
 # Who questions
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO short cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO short inv cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO aux cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 
 # What questions
@@ -133,6 +132,5 @@ getcand() / (SEQ(X, A, Y, V, O) & CASE("when")) >> [show_line("\nWHEN..."), -SEQ
 getcand() / (SEQ(X, V, O) & CASE("when") & TIME_PREP(K)) >> [show_line("\nWHEN short..."), -TIME_PREP(K), join_seq(X, V, O, K, "Dummy"), getcand()]
 getcand() / (SEQ(X, V, O) & CASE("when")) >> [show_line("\nWHEN short end..."), -SEQ(X, V, O), getcand()]
 
-getcand() / (CASE(X) & ROOT(Y) & COP("YES")) >> [show_line("\nqreason ended copular..."), -CASE(X), -ROOT(Y), -COP("YES")]
 getcand() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]
 
