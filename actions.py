@@ -39,12 +39,16 @@ LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
 EMPTY_HKB_AFTER_REASONING = config.getboolean('LKB', 'EMPTY_HKB_AFTER_REASONING')
 NESTED_REASONING = config.getboolean('REASONING', 'NESTED_REASONING')
-PAST_TENSE_POS = config.get('QA', 'PAST_TENSE_POS')
-THIRD_TENSE_POS = config.get('QA', 'THIRD_TENSE_POS')
 LOC_PREPS = str(config.get('QA', 'LOC_PREPS')).split(", ")
 TIME_PREPS = str(config.get('QA', 'TIME_PREPS')).split(", ")
 COP_VERB = str(config.get('QA', 'COP_VERB')).split(", ")
+ROOT_TENSE_DEBT = str(config.get('QA', 'ROOT_TENSE_DEBT')).split(", ")
 
+# creating debt tenses dictionary
+tense_debt_voc = {}
+for rtd in ROOT_TENSE_DEBT:
+    couple = rtd.split(":")
+    tense_debt_voc.update({couple[0]: couple[1]})
 
 parser = Parse(VERBOSE)
 fol_manager = ManageFols(VERBOSE, LANGUAGE)
@@ -1794,6 +1798,9 @@ class assert_sequence(Action):
             print("post_root: ", post_root)
             print("compl_root: ", compl_root)
 
+            if aux in tense_debt_voc:
+                print("\nroot tense debt: ", root, " ---> ", tense_debt_voc[aux])
+
             if first_word.lower() == "who":
 
                 self.assert_belief(SEQ(pre_aux, aux, post_aux, root, compl_root, post_root))
@@ -1804,29 +1811,21 @@ class assert_sequence(Action):
 
             elif first_word == "when":
 
-
                 for lc in TIME_PREPS:
                     self.assert_belief(TIME_PREP(lc))
 
-                if len(aux) == 0:
-                    self.assert_belief(SEQ(post_aux, root, post_root))
-                else:
-                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root, compl_root))
 
             elif first_word == "where":
-
-                if len(compl_root) > 0:
-                    root = root+" "+compl_root
 
                 if deps[len(deps)-2][0] != "prep":
                     self.assert_belief(LP("YES"))
                     for lc in LOC_PREPS:
                         self.assert_belief(LOC_PREP(lc))
 
-                if len(aux) == 0:
-                    self.assert_belief(SEQ(root, post_root))
-                else:
-                    self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root))
+                self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root, compl_root))
+
+
         else:
             self.assert_belief(SEQ(sentence[:-1]))
 
