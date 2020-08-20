@@ -97,10 +97,15 @@ getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +C
 getcand() / SEQ(X) >> [show_line("\nPOLAR....\n"), -SEQ(X), +CAND(X)]
 
 # --- WHO ---
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO short cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO aux cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
+# who is Donald Trump?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO cop 3 null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
+# who wants to be king?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y)) >> [show_line("\nWHO 3 null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
+# who could be the president of United States?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, Y) & aux_included(A)) >> [show_line("\nWHO aux 2 null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), getcand()]
+# Who could it be?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
+# Who did you see?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who")) >> [show_line("\nWHO normal..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
 
 # --- WHAT ---
