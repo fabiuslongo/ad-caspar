@@ -69,7 +69,7 @@ actions_to_clauses() >> [show_line("\nactions to clauses done. "), finalize_clau
 
 
 # applying preps and finalization to clauses
-finalize_clause() / (CLAUSE(I, D, X) & PREP(I, D, L, O)) >> [show_line("\napplying prep to clauses..."), -CLAUSE(I, D, X), -PREP(I, D, L, O), prep_to_clause(I, D, X, L, O), finalize_clause()]
+finalize_clause() / (CLAUSE(I, D, X) & PREP(I, D, L, O)) >> [show_line("\napplying prep to clauses: ", L), -CLAUSE(I, D, X), -PREP(I, D, L, O), prep_to_clause(I, D, X, L, O), finalize_clause()]
 finalize_clause() / CLAUSE(I, D, X) >> [show_line("\nfinalize clause..."), -CLAUSE(I, D, X), +CLAUSE(I, X), finalize_clause()]
 finalize_clause() / (CLAUSE("LEFT", X) & CLAUSE("LEFT", Y) & neq(X, Y)) >> [show_line("\nleft conjunction..."), -CLAUSE("LEFT", X), -CLAUSE("LEFT", Y), conjunct_left_clauses(X, Y), finalize_clause()]
 finalize_clause() / (LEFT_CLAUSE(X) & CLAUSE("LEFT", Y)) >> [show_line("\nleft conjunction..."), -LEFT_CLAUSE(X), -CLAUSE("LEFT", Y), conjunct_left_clauses(X, Y), finalize_clause()]
