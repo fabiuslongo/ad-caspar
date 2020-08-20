@@ -38,7 +38,7 @@ class join_seq(Action):
                    new_seq = new_seq + " " + s
 
        print(new_seq)
-       # self.assert_belief(CAND(new_seq))
+       #self.assert_belief(CAND(new_seq))
 
 
 class aux_included(ActiveBelief):
@@ -66,18 +66,15 @@ class all_not_null(ActiveBelief):
             return False
 
 
-class all_null(ActiveBelief):
-    def evaluate(self, x, y, z):
+class null(ActiveBelief):
+    def evaluate(self, *args):
 
-        var1 = str(x).split("'")[3]
-        var2 = str(y).split("'")[3]
-        var3 = str(z).split("'")[3]
+        vars = str(args).split("'")
 
-        # Check for valid aux
-        if var1 == "" and var2 == "" and var3 == "":
-            return True
-        else:
-            return False
+        for i in range(3, len(vars)-1, 4):
+            if vars[i] != "":
+                return False
+        return True
 
 
 class check_cop(ActiveBelief):
@@ -100,23 +97,28 @@ getcand() / SEQ("AUX", X) >> [show_line("\nAUX+POLAR....\n"), -SEQ("AUX", X), +C
 getcand() / SEQ(X) >> [show_line("\nPOLAR....\n"), -SEQ(X), +CAND(X)]
 
 # --- WHO ---
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO short cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & all_null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y) & check_cop(V)) >> [show_line("\nWHO short cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), join_seq(K, V, O, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & null(X, A, Y)) >> [show_line("\nWHO short..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", V, O, K), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & check_cop(V) & aux_included(A)) >> [show_line("\nWHO aux cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, A, Y, V, O, K), join_seq(K, X, A, Y, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who") & aux_included(A)) >> [show_line("\nWHO aux..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("who")) >> [show_line("\nWHO normal..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
 
 # --- WHAT ---
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & all_not_null(X, A, Y)) >> [show_line("\nWHAT test not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & all_not_null(X, A, Y)) >> [show_line("\nWHAT test not null 2..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & check_cop(V)) >> [show_line("\nWHAT test cop..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), join_seq(K, X, Y, A, O, V, "Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT test..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what")) >> [show_line("\nWHAT test 2..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
+# what is a king?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & check_cop(V) & null(X, A, Y)) >> [show_line("\nWHAT cop 3 null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, V, O, K), join_seq(K, X, Y, V, O, "Dummy"), getcand()]
+# what is located in Nevada?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & null(X, Y)) >> [show_line("\nWHAT aux 2 null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy", X, Y, A, V, O, K), join_seq(K, X, Y, A, V, O, "Dummy"), getcand()]
+# What does Mary want?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & null(X)) >> [show_line("\nWHAT 1 null.."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
+# what movies have you seen recently?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT +aux not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
+# what qualities do you think are important in a friend?
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what")) >> [show_line("\nWHAT -aux all not null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
 
 # --- WHERE ---
 # where is the newspaper?
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & LOC_PREP(Z) & all_null(X, A, Y)) >> [show_line("\nWHERE short..."), -LOC_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & all_null(X, A, Y)) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(X, A, Y, V, O, K), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & LOC_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHERE short..."), -LOC_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & null(X, A, Y)) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(X, A, Y, V, O, K), getcand()]
 # where could your brother live?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & aux_included(A) & LP("YES") & LOC_PREP(Z)) >> [show_line("\nWHERE aux..."), -LOC_PREP(Z), join_seq(X, Y, A, V, K, O, Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & aux_included(A) & LP("YES")) >> [show_line("\nWHERE aux end..."), -LP("YES"), -SEQ(X, A, Y, V, O, K), getcand()]
@@ -129,8 +131,8 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where")) >> [show_line("\nWHERE..."),
 
 # --- WHEN ---
 # When is the Thanksgiving?
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z) & all_null(X, A, Y)) >> [show_line("\nWHEN short..."), -TIME_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & all_null(X, A, Y)) >> [show_line("\nWHEN short end..."), -SEQ(X, A, Y, V, O, K), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHEN short..."), -TIME_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & null(X, A, Y)) >> [show_line("\nWHEN short end..."), -SEQ(X, A, Y, V, O, K), getcand()]
 # when could your city become a metropolis?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & aux_included(A) & TIME_PREP(Z)) >> [show_line("\nWHEN aux prep...", Z), -TIME_PREP(Z), join_seq(X, Y, A, V, K, O, Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux prep end..."), -SEQ(X, A, Y, V, O, K), getcand()]
