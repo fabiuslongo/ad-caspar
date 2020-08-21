@@ -37,8 +37,9 @@ class join_seq(Action):
                else:
                    new_seq = new_seq + " " + s
 
-       print(new_seq)
-       #self.assert_belief(CAND(new_seq))
+       new_seq_revised = new_seq.replace(" ---", ",")
+       print(new_seq_revised)
+       self.assert_belief(CAND(new_seq_revised))
 
 
 class aux_included(ActiveBelief):
@@ -53,17 +54,14 @@ class aux_included(ActiveBelief):
 
 
 class all_not_null(ActiveBelief):
-    def evaluate(self, x, y, z):
+    def evaluate(self, *args):
 
-        var1 = str(x).split("'")[3]
-        var2 = str(y).split("'")[3]
-        var3 = str(z).split("'")[3]
+        vars = str(args).split("'")
 
-        # Check for valid aux
-        if var1 != "" and var2 != "" and var3 != "":
-            return True
-        else:
-            return False
+        for i in range(3, len(vars) - 1, 4):
+            if vars[i] == "":
+                return False
+        return True
 
 
 class null(ActiveBelief):
@@ -136,13 +134,13 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where")) >> [show_line("\nWHERE..."),
 
 # --- WHEN ---
 # When is the Thanksgiving?
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHEN short..."), -TIME_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHEN short..."), -TIME_PREP(Z), join_seq(O, V, K, "---", Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & null(X, A, Y)) >> [show_line("\nWHEN short end..."), -SEQ(X, A, Y, V, O, K), getcand()]
 # when could your city become a metropolis?
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & aux_included(A) & TIME_PREP(Z)) >> [show_line("\nWHEN aux prep...", Z), -TIME_PREP(Z), join_seq(X, Y, A, V, K, O, Z, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & aux_included(A) & TIME_PREP(Z)) >> [show_line("\nWHEN aux prep...", Z), -TIME_PREP(Z), join_seq(X, Y, A, V, K, O, "---", Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & aux_included(A)) >> [show_line("\nWHEN aux prep end..."), -SEQ(X, A, Y, V, O, K), getcand()]
 # when do you want to leave the country?
-getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z)) >> [show_line("\nWHEN prep: ", Z), -TIME_PREP(Z), join_seq(X, Y, V, K, O, Z, "Dummy"), getcand()]
+getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z)) >> [show_line("\nWHEN prep: ", Z), -TIME_PREP(Z), join_seq(X, Y, V, K, O, "---", Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when")) >> [show_line("\nWHEN prep end..."), -SEQ(X, A, Y, V, O, K), getcand()]
 
 getcand() / (CASE(X) & ROOT(Y)) >> [show_line("\nqreason ended normal..."), -CASE(X), -ROOT(Y)]

@@ -46,6 +46,15 @@ class Parse(object):
         # last processed sentence
         self.last_sentence = None
 
+        # last processed sentence
+        self.pending_root_tense_debt = None
+
+
+    def get_pending_root_tense_debt(self):
+        return self.pending_root_tense_debt
+
+    def set_pending_root_tense_debt(self, d):
+        self.pending_root_tense_debt = d
 
     def get_last_sentence(self):
         return self.last_sentence

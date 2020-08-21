@@ -325,6 +325,7 @@ class preprocess_clause(Action):
             deps = parser.get_deps(sentence, True)
             parser.set_last_deps(deps)
             ner = parser.get_last_ner()
+            rtd = parser.get_pending_root_tense_debt()
             print("\nner: ", ner)
 
             for i in range(len(deps)):
@@ -335,6 +336,31 @@ class preprocess_clause(Action):
             # Dependencies Uniquezation
             Ren = Uniquelizer(VERBOSE, LANGUAGE)
             m_deps = Ren.morph_deps(deps)
+
+            # paying the ROOT Tense Debt
+            if rtd is not None:
+                print("ROOT Tense Debt: ", rtd)
+                # getting ROOT verb
+                old_root_tense = ""
+                new_value = ""
+                for d in m_deps:
+                    if d[0] == "ROOT":
+                        old_root_tense = d[1]
+                        lemma_root = self.get_lemma(d[1])
+                        new_value = lemma_root+":"+rtd
+                        d[1] = new_value
+                        d[2] = new_value
+                        break
+                for d in m_deps:
+                    if d[0] != "ROOT":
+                        if d[1] == old_root_tense:
+                            d[1] = new_value
+                        if d[2] == old_root_tense:
+                            d[2] = new_value
+                parser.set_pending_root_tense_debt(None)
+            else:
+                print("no ROOT Tense Debt")
+
             print("\n" + str(m_deps))
             parser.set_last_m_deps(m_deps)
 
@@ -1800,6 +1826,7 @@ class assert_sequence(Action):
 
             if aux in tense_debt_voc:
                 print("\nroot tense debt: ", root, " ---> ", tense_debt_voc[aux])
+                parser.set_pending_root_tense_debt(tense_debt_voc[aux])
 
             if first_word.lower() == "who":
 
@@ -1825,10 +1852,8 @@ class assert_sequence(Action):
 
                 self.assert_belief(SEQ(pre_aux, aux, post_aux, root, post_root, compl_root))
 
-
         else:
             self.assert_belief(SEQ(sentence[:-1]))
-
 
         parser.flush()
 
