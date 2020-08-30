@@ -80,6 +80,8 @@ class Chatbot(Sensor):
     def on_start(self):
         global BOT
         BOT = telegram.Bot("1280923336:AAFi6ZVoF6LjJcoYueSuyXDa7Z4l8QAaYTA")
+        BOT = telegram.Bot("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
         self.update_id = None
         self.msgs = [ ]
 
