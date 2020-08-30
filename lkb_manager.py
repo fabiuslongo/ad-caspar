@@ -67,7 +67,7 @@ class ManageLKB(object):
         for chu in chunks:
             chinks = chu.split("(")
             for chi in chinks:
-                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
+                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>" and ',' not in chi:
                     def_chinks.append(chi)
         return def_chinks
 
@@ -95,23 +95,13 @@ class ManageLKB(object):
         return x.deleted_count
 
 
-    def extract_features(self, sent):
-        chunks = sent.split(" ")
-        def_chinks = []
-        for chu in chunks:
-            chinks = chu.split("(")
-            for chi in chinks:
-                if ')' not in chi and chi not in def_chinks and chi != '' and chi != "==>":
-                    def_chinks.append(chi)
-        return def_chinks
-
-
 
     def aggregate_clauses(self, cls, aggregated_clauses, min_confidence):
 
         db = self.client["ad-caspar"]
         features = self.extract_features(cls)
         feat_num = len(features)
+        #print("\nfeatures: ", features)
 
         aggr = db.clauses.aggregate([
             {"$project": {

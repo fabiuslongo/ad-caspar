@@ -58,7 +58,7 @@ chkb() >> [clear_hkb()]
 clkb() >> [clear_lkb()]
 
 # managing bot beliefs
-+message(C, "hello") / WAIT(W) >> [Reply(C, "Hello! ;-)"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
++message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
 +message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start]
 
 +MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), +STT(X), Timer(W).start]
@@ -75,6 +75,8 @@ qreason() / (CAND(X) & WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-CAND(X)
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES') & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-ANSWERED('YES')]
+qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
+
 
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"

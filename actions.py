@@ -925,8 +925,12 @@ class reason(Action):
             print("\nMIN_CONFIDENCE: ", MIN_CONFIDENCE)
 
             aggregated_clauses = lkbm.aggregate_clauses(q, [], MIN_CONFIDENCE)
+            num_aggregated_clauses = len(aggregated_clauses)
 
-            print("\nnumber asserted clauses: ", len(aggregated_clauses))
+            if num_aggregated_clauses == 0:
+                self.assert_belief(OUT("I don't know!"))
+
+            print("\nnumber asserted clauses: ", num_aggregated_clauses)
             for a in aggregated_clauses:
                 kb_fol.tell(expr(a))
 
@@ -973,9 +977,8 @@ class reason(Action):
             for uq in unique_sentences:
                 print(uq)
                 if SHOW_REL:
-                    self.assert_belief(RELATED(str(uq)))
-
-
+                    related = uq+" ("+str(confidence)+")"
+                    self.assert_belief(RELATED(related))
 
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:
