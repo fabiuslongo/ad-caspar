@@ -43,6 +43,8 @@ LOC_PREPS = str(config.get('QA', 'LOC_PREPS')).split(", ")
 TIME_PREPS = str(config.get('QA', 'TIME_PREPS')).split(", ")
 COP_VERB = str(config.get('QA', 'COP_VERB')).split(", ")
 ROOT_TENSE_DEBT = str(config.get('QA', 'ROOT_TENSE_DEBT')).split(", ")
+SHOW_REL = config.getboolean('QA', 'SHOW_REL')
+
 
 # creating debt tenses dictionary
 tense_debt_voc = {}
@@ -217,6 +219,7 @@ class LOC_PREP(Belief): pass
 class LP(Belief): pass
 class TIME_PREP(Belief): pass
 class ROOT(Belief): pass
+class RELATED(Belief): pass
 
 
 class set_wait(Action):
@@ -896,6 +899,7 @@ class reason(Action):
 
         if bc_result is not False:
             self.assert_belief(OUT("From HKB: True"))
+            self.assert_belief(OUT(str(bc_result)))
             self.assert_belief(ANSWERED("YES"))
 
 
@@ -911,6 +915,7 @@ class reason(Action):
             else:
                 print("\nResult: ", nested_result)
                 self.assert_belief(OUT("From HKB: True"))
+                self.assert_belief(OUT(str(nested_result)))
                 self.assert_belief(ANSWERED("YES"))
 
         if LKB_USAGE and bc_result is False and nested_result is False:
@@ -932,6 +937,7 @@ class reason(Action):
 
             if bc_result is not False:
                 self.assert_belief(OUT("From LKB: True"))
+                self.assert_belief(OUT(str(bc_result)))
                 self.assert_belief(ANSWERED("YES"))
 
             elif bc_result is False and NESTED_REASONING:
@@ -945,6 +951,7 @@ class reason(Action):
                 else:
                     print("\nResult: ", nested_result)
                     self.assert_belief(OUT("From LKB: True"))
+                    self.assert_belief(OUT(str(nested_result)))
                     self.assert_belief(ANSWERED("YES"))
 
             reason_keys = lkbm.get_last_keys()
@@ -965,6 +972,10 @@ class reason(Action):
                         unique_sentences.append(sentence)
             for uq in unique_sentences:
                 print(uq)
+                if SHOW_REL:
+                    self.assert_belief(RELATED(str(uq)))
+
+
 
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:
