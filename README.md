@@ -3,7 +3,7 @@
 This is the repository of the Python (3.7+) implementation of AD-CASPAR (Abductive-Deductive Cognitive Architecture System Planned and Reactive)
 referred to the paper _AD-CASPAR: Abductive-Deductive Cognitive Architecture based on Natural Language and First Order Logic Reasoning_.
 
-![Image 1](https://github.com/fabiuslongo/pycaspar/blob/master/images/AD-Caspar.JPG)
+![Image 1](https://github.com/fabiuslongo/ad-caspar/blob/master/images/AD-Caspar.JPG)
 
 # Installation
 
