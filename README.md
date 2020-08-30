@@ -2,7 +2,7 @@
 
 This is the repository of the Python (3.7+) implementation of AD-CASPAR (Abductive-Deductive Cognitive Architecture System Planned and Reactive)
 referred to the paper _AD-CASPAR: Abductive-Deductive Cognitive Architecture based on Natural Language and First Order Logic Reasoning_. 
-This architecture inherits all the features of his predecessor [CASPAR](Caspar inherits all the characteristics of his predecessor), extending them with a 
+This architecture inherits all the features of his predecessor [CASPAR](https://github.com/fabiuslongo/pycaspar), extending them with a 
  two-level Clauses Knowledge Base, an abductive inference as pre-phase of deduction, and a Telegram
 chatbot prototype implementing Question Answering tecniques for Polar and Wh-Questions.
 
