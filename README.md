@@ -115,7 +115,7 @@ eShell: main > kb
 WAIT(1000)
 eShell: main >
 ```
-The value inside the belief WAIN represent the maximum duration of each session. It can be changed by modifing the value
+The value inside the belief WAIT represents the maximum duration of each session in seconds. It can be changed by modifying the value
 of the variable WAIT_TIME (section AGENT) in config.ini. The two layers of the Clauses KB (respectively High KB and Low KB) can be inspected with the following commands:
 
 ```sh
