@@ -29,7 +29,7 @@ The corresponding queries as single composite literals will be:
 
 ---------------
 Copular tenses like "is", "was", "were", although intransitive, identify a subject with an object, thus a likely answer might have subject/object inverted as well.
-Each copular verb we want to give such a behaviour, can be defined by changing inside COP_VERB (QA Section) in config.ini.
+Each copular verb we want to give such a behaviour, can be defined by inside COP_VERB (QA Section) in config.ini.
 
 * _Who is Donald Trump?_
 
