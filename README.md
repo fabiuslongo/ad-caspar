@@ -154,4 +154,9 @@ Barack Obama became the president of United States in 2009.
 
 ### Querying the bot
 
+In the following picture is shown two different kind of query with wh-questions: 
+
 ![Image 3](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query1.JPG)
+
+This prototype give back as result a substitutions containing the literal as
+logical representation of the snipplet-result of the query.
