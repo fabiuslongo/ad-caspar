@@ -159,4 +159,10 @@ In the following picture is shown two different kind of query with wh-questions:
 ![Image 3](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query1.JPG)
 
 This prototype give back as result a substitutions containing the literal as
-logical representation of the snipplet-result of the query.
+logical representation of the snipplet-result of the query. After a bot reboot, the result will be slightly different because the High Clauses KB
+will be empty and must be populated getting clauses from the Low Clauses KB, taking in account of a confidence level about the presence of the lemmatized labels in the clauses.
+Such a confidence level, depending of the domain can be changed by modifying the value of MIN_CONFIDENCE (section LKB) in config.ini.
+
+![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
+
+![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query3.JPG)
