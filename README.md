@@ -165,4 +165,6 @@ Such a confidence level, depending of the domain can be changed by modifying the
 
 ![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
 
+bla bla bla
+
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query3.JPG)
