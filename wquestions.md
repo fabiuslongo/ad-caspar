@@ -5,10 +5,17 @@ In this file is shown how AD-CASPAR deals with Polar and Wh-questions, by the me
 
 ### Polar questions
 
+This is the simplest case of questions which not requires any structured answer but _True_ or _False_.
+
 ---------------
 
-* Barack Obama became president of United States in 2009?
-* Have you found a name for your dog?
+* _Barack Obama became president of United States in 2009?_
+* _Have you found a name for your dog?_
+
+The corresponding queries as single composite literals will be:
+
+* In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
+* Find_VBD(You_PRP(x1), For_IN(Name_NN(x2), Your_PRP__Dog_NN(x3)))
 
 
 ### Who-questions
