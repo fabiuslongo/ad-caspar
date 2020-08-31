@@ -56,6 +56,9 @@ The corresponding queries as single composite literals will be:
 
 ---------------
 
+Copular tenses like "is", "was", "were", although intransitive, identify a subject with an object, thus a likely answer might have subject/object inverted as well.
+Each copular verb we want to give such a behaviour, can be defined by changing inside COP_VERB (QA Section) in config.ini.
+
 * _What is a king?_
 ```sh
 > Be_VBZ(x1, King_NN(x2))
@@ -74,6 +77,8 @@ The corresponding queries as single composite literals will be:
 ### Where-questions
 
 ---------------
+
+Each adverb used for answers attemps can be defined by changing LOC_PREPS (QA Section) in config.ini.
 
 * _Where is the newspaper?_
 ```sh
@@ -98,6 +103,9 @@ The corresponding queries as single composite literals will be:
 ### When-questions
 
 ---------------
+
+Each adverb used for answers attemps can be defined by changing TIME_PREPS (QA Section) in config.ini.
+
 
 * _When is the Thanksgiving?_
 ```sh
