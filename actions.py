@@ -360,7 +360,6 @@ class preprocess_clause(Action):
                             d[1] = new_value
                         if d[2] == old_root_tense:
                             d[2] = new_value
-                parser.set_pending_root_tense_debt(None)
             else:
                 print("no ROOT Tense Debt")
 
@@ -1874,4 +1873,8 @@ class assert_sequence(Action):
 
         parser.flush()
 
+
+class tense_debt_paid(Action):
+    def execute(self):
+        parser.set_pending_root_tense_debt(None)
 

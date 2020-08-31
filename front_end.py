@@ -69,13 +69,16 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), assert_sequence(X), getcand(), qreason()]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), assert_sequence(X), getcand(), qreason(), tense_debt_paid()]
 
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-CAND(X), qreason()]
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES') & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-ANSWERED('YES')]
 qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
+
+
+
 
 
 
