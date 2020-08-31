@@ -28,6 +28,8 @@ The corresponding queries as single composite literals will be:
 ### Who-questions
 
 ---------------
+Copular tenses like "is", "was", "were", although intransitive, identify a subject with an object, thus a likely answer might have subject/object inverted as well.
+Each copular verb we want to give such a behaviour, can be defined by changing inside COP_VERB (QA Section) in config.ini.
 
 * _Who is Donald Trump?_
 
@@ -55,9 +57,6 @@ The corresponding queries as single composite literals will be:
 ### What-questions
 
 ---------------
-
-Copular tenses like "is", "was", "were", although intransitive, identify a subject with an object, thus a likely answer might have subject/object inverted as well.
-Each copular verb we want to give such a behaviour, can be defined by changing inside COP_VERB (QA Section) in config.ini.
 
 * _What is a king?_
 ```sh
