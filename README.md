@@ -96,3 +96,57 @@ eShell: main > go()
 eShell: main > AD-Caspar started! Bot is running...
 ```
 
+### Inspecting Knowledge Bases
+
+---------------
+
+After the agent is started, the Belief KB can be inspected with the following command:
+
+```sh
+eShell: main > kb
+WAIT(1000)
+eShell: main >
+```
+The value inside the belief WAIN represent the maximum duration of each session. It can be changed by modifing the value
+of the variable WAIT_TIME (section AGENT) in config.ini. The two layers of the Clauses KB (respectively High KB and Low KB) can be inspected with the following commands:
+
+```sh
+eShell: main > hkb()
+0 clauses in Higher Knowledge Base
+eShell: main > lkb()
+0  clauses in Lower Knowledge Base
+eShell: main >
+```
+
+both High KB e Low KB can be emptied with the following commands:
+
+```sh
+eShell: main > chkb()
+Higher Clauses kb initialized.
+0  clauses deleted.
+eShell: main > clkb()
+Lower Clauses kb initialized.
+0  clauses deleted.
+eShell: main >
+```
+
+to start a session you have to go to the telegram bot window and type the word "hello". Assertions must end with 
+"." and questions must end with "?". Otherwise the utterances will be processed as direct commands or routines (check out the page of [CASPAR](https://github.com/fabiuslongo/pycaspar) for details).
+
+![Image 2](https://github.com/fabiuslongo/ad-caspar/blob/master/images/start-assertion.jpg)
+
+```sh
+eShell: main > hkb()
+eShell: main > In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
+
+1 clauses in Higher Knowledge Base
+
+eShell: main > lkb()
+eShell: main > 
+
+In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
+['In_IN', 'Become_VBD', 'Barack_NNP_Obama_NNP', 'Of_IN', 'President_NN', 'United_NNP_States_NNP', 'N2009_CD']
+Barack Obama became the president of United States in 2009.
+
+1  clauses in Lower Knowledge Base
+```
