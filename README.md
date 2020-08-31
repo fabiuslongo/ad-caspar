@@ -178,4 +178,4 @@ Optionally, with the value of SHOW_REL set to _true_, the closest results can be
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query4.JPG)
 
-A detailed overview of how the wh-questions are treated is provided [here](www.qualcosa.com).
+A detailed overview of how the wh-questions are treated is provided [here](https://github.com/fabiuslongo/ad-caspar/blob/master/wquestions.md).
