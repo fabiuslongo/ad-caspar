@@ -167,6 +167,6 @@ EMPTY_HKB_AFTER_REASONING (section LKB) in config.ini.
 
 ![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
 
-bla bla bla
+By changing the values of SHOW_REL (section QA) in config.ini, it can be possible to show the clauses involved in the abduction pre-inference, together with their confidences.
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query3.JPG)
