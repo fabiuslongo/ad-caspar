@@ -7,8 +7,8 @@ In this file is shown how AD-CASPAR deals with Polar and Wh-questions, by the me
 
 ---------------
 
-Barack Obama became president of United States in 2009?
-Have you found a name for your dog?
+* Barack Obama became president of United States in 2009?
+* Have you found a name for your dog?
 
 
 ### Who-questions
