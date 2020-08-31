@@ -135,6 +135,8 @@ to start a session you have to go to the telegram bot window and type the word "
 
 ![Image 2](https://github.com/fabiuslongo/ad-caspar/blob/master/images/start-assertion.JPG)
 
+After such interaction withe the telegram bot, the two layers of the Clauses KB will be as it follows:
+
 ```sh
 eShell: main > hkb()
 eShell: main > In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
@@ -142,7 +144,6 @@ eShell: main > In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2)
 1 clauses in Higher Knowledge Base
 
 eShell: main > lkb()
-eShell: main > 
 
 In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
 ['In_IN', 'Become_VBD', 'Barack_NNP_Obama_NNP', 'Of_IN', 'President_NN', 'United_NNP_States_NNP', 'N2009_CD']
@@ -150,3 +151,4 @@ Barack Obama became the president of United States in 2009.
 
 1  clauses in Lower Knowledge Base
 ```
+
