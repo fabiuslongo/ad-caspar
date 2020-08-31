@@ -133,7 +133,7 @@ eShell: main >
 to start a session you have to go to the telegram bot window and type the word "hello". Assertions must end with 
 "." and questions must end with "?". Otherwise the utterances will be processed as direct commands or routines (check out the page of [CASPAR](https://github.com/fabiuslongo/pycaspar) for details).
 
-![Image 2](https://github.com/fabiuslongo/ad-caspar/blob/master/images/start-assertion.jpg)
+![Image 2](https://github.com/fabiuslongo/ad-caspar/blob/master/images/start-assertion.JPG)
 
 ```sh
 eShell: main > hkb()
