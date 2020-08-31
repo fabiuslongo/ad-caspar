@@ -957,6 +957,9 @@ class reason(Action):
                     self.assert_belief(OUT("From LKB: True"))
                     self.assert_belief(OUT(str(nested_result)))
                     self.assert_belief(ANSWERED("YES"))
+            else:
+                self.assert_belief(OUT("From LKB: False"))
+
 
             reason_keys = lkbm.get_last_keys()
             print("\nreason keys:", reason_keys)
