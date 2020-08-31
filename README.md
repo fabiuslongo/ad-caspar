@@ -143,7 +143,7 @@ to start a session you have to go to the telegram bot window and type the word "
 
 ![Image 2](https://github.com/fabiuslongo/ad-caspar/blob/master/images/start-assertion.JPG)
 
-After such interaction withe the telegram bot, the two layers of the Clauses KB will be as it follows:
+After such interaction with the telegram bot, the two layers of the Clauses KB will be as it follows:
 
 ```sh
 eShell: main > hkb()
