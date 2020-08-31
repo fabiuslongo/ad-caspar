@@ -152,3 +152,6 @@ Barack Obama became the president of United States in 2009.
 1  clauses in Lower Knowledge Base
 ```
 
+### Querying the bot
+
+![Image 3](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query1.JPG)
