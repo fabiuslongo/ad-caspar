@@ -1,6 +1,12 @@
 # Questions capabilities overview
 
-In this file is shown how AD-CASPAR deals with Polar and Wh-questions, by the means of the module qa_shifter.py.
+In this file is shown how AD-CASPAR deals with Polar and Wh-questions, by the means of the module qa_shifter.py. The latter
+works is a parser based on production rules, which works considering lexical rule to shit a question into a possible assertion.
+Every question, by leveraging its dependencies, is divided into chunks as it follows:
+
+[PRE_AUX], [AUX], [POST_AUX], [ROOT], [POST_ROOT], [COMP_ROOT]
+
+
 
 
 ### Polar questions
