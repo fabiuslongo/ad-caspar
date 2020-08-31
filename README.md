@@ -162,7 +162,7 @@ This prototype give back as result a substitutions containing the literal as
 logical representation of the snipplet-result of the query. After a bot reboot, as we can see in the following picture, the result will be slightly different because the High Clauses KB
 will be empty and must be populated getting clauses from the Low Clauses KB, taking in account of a confidence level about the presence of the lemmatized labels in the clauses.
 Such a confidence level, depending of the domain can be changed by modifying the value of MIN_CONFIDENCE (section LKB) in config.ini. The first query will get a result form the Low KB (From LKB: True), while the second one from the High KB (From HKB: True);
-thats because the content of the High KB is preserved during the session, otherwise can be emptied after a query by changing the value of
+thats because the content of the High KB is preserved during the session, otherwise it can be emptied after a query by changing the value of
 EMPTY_HKB_AFTER_REASONING (section LKB) in config.ini.
 
 ![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
