@@ -16,8 +16,11 @@ This repository has been tested on Pycharm 2019.1.2 x64 with the following packa
 * [Phidias](https://github.com/corradosantoro/phidias) (release 1.3.4.alpha) 
 * SpaCy (ver. 2.2.4)
 * Natural Language Toolkit (ver. 3.5)
-* python-telegram-bot
-* [Mongodb](www.mongodb.com)
+* python-telegram-bot (ver. 12.8)
+* pymongo (ver. 3.10.1)
+
+The address of a MongoDB server must be specified by changing the value of HOST (section LKB) in config.ini.
+
 
 ### Phidias
 
@@ -65,6 +68,11 @@ from python console:
 ### python-telegram-bot
 ```sh
 > python -m pip python-telegram-bot
+```
+
+### pymongo
+```sh
+> python -m pip pymongo
 ```
 
 # Testing
