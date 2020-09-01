@@ -181,7 +181,7 @@ By changing the values of SHOW_REL (section QA) in config.ini, it can be possibl
 
 ### Failing queries
 
-In the bot closed world assumption, it can have answers only about its onw knowledge, otherwise it will return _False_.
+In the bot closed world assumption, the agent can give back only answers related to its onw knowledge, otherwise it will return _False_.
 Optionally, with the value of SHOW_REL set to _true_, the closest results can be shows together with their confidence level: 
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query4.JPG)
