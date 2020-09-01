@@ -120,9 +120,9 @@ of the variable WAIT_TIME (section AGENT) in config.ini. The two layers of the C
 
 ```sh
 eShell: main > hkb()
-0 clauses in Higher Knowledge Base
+0 clauses in High Knowledge Base
 eShell: main > lkb()
-0  clauses in Lower Knowledge Base
+0  clauses in Low Knowledge Base
 eShell: main >
 ```
 
@@ -130,10 +130,10 @@ both High KB e Low KB can be emptied with the following commands:
 
 ```sh
 eShell: main > chkb()
-Higher Clauses kb initialized.
+High Clauses kb initialized.
 0  clauses deleted.
 eShell: main > clkb()
-Lower Clauses kb initialized.
+Low Clauses kb initialized.
 0  clauses deleted.
 eShell: main >
 ```
@@ -149,7 +149,7 @@ After such interaction with the telegram bot, the two layers of the Clauses KB w
 eShell: main > hkb()
 eShell: main > In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_States_NNP(x3))), N2009_CD(x4))
 
-1 clauses in Higher Knowledge Base
+1 clauses in High Knowledge Base
 
 eShell: main > lkb()
 
@@ -157,12 +157,12 @@ In_IN(Become_VBD(Barack_NNP_Obama_NNP(x1), Of_IN(President_NN(x2), United_NNP_St
 ['In_IN', 'Become_VBD', 'Barack_NNP_Obama_NNP', 'Of_IN', 'President_NN', 'United_NNP_States_NNP', 'N2009_CD']
 Barack Obama became the president of United States in 2009.
 
-1  clauses in Lower Knowledge Base
+1  clauses in Low Knowledge Base
 ```
 
 ### Querying the bot
 
-In the following picture is shown two different kind of query with wh-questions: 
+In the following picture are shown two different kind of query with wh-questions: 
 
 ![Image 3](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query1.JPG)
 
