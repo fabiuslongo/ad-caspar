@@ -91,6 +91,7 @@ Each adverb used for any answer attempt must be defined by changing LOC_PREPS (Q
 > In_IN(Live_VBZ(Your_PRP__Brother_NN(x1), __), x3)
 > At_IN(Live_VBZ(Your_PRP__Brother_NN(x1), __), x3)
 ```
+When a where-question ends with a preposition (_at_), the latter will be used for the assertion composition without using the content of LOC_PREPS.
 * _Where are you looking at?_
 ```sh
 > At_IN(Look_VBG(You_PRP(x1), __), x3)
