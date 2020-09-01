@@ -24,7 +24,7 @@ The corresponding queries as single composite literals will be:
 
 ---------------
 Copular tenses like "is", "was", "were", although intransitive, identify a subject with an object, thus a likely answer might have subject/object inverted as well.
-Each copular verb we want to give such a behaviour, can be defined by inside COP_VERB (QA Section) in config.ini.
+Each copular verb we want to give such a behaviour, can be defined inside COP_VERB (QA Section) in config.ini.
 
 * _Who is Donald Trump?_
 
@@ -36,6 +36,8 @@ Each copular verb we want to give such a behaviour, can be defined by inside COP
 ```sh
 > Want_VBZ_Be_VB(x1, King_NN(x2))
 ```
+For this prototype information representation, modal verbs (_could_) are discarded. Otherwise the dependency _aux_ must be
+removed from FILTER in parse_en.py and treated properly.
 * _Who could be the president of United States?_
 ```sh
 > Be_VB(x1, Of_IN(President_NN(x2), United_NNP_States_NNP(x3)))
@@ -72,7 +74,7 @@ Each copular verb we want to give such a behaviour, can be defined by inside COP
 
 ---------------
 
-Each adverb used for answers attemps can be defined by changing LOC_PREPS (QA Section) in config.ini.
+Each adverb used for any answer attempt must be defined by changing LOC_PREPS (QA Section) in config.ini.
 
 * _Where is the newspaper?_
 ```sh
@@ -98,7 +100,7 @@ Each adverb used for answers attemps can be defined by changing LOC_PREPS (QA Se
 
 ---------------
 
-Each adverb used for answers attemps can be defined by changing TIME_PREPS (QA Section) in config.ini.
+Each adverb used for any answer attemp must be defined by changing TIME_PREPS (QA Section) in config.ini.
 
 
 * _When is the Thanksgiving?_

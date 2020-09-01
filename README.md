@@ -77,8 +77,7 @@ from python console:
 
 # Testing
 Before going any further it is first necessary to create a new telegram bot by following the instruction
- in this [page](https://core.telegram.org/bots#6-botfather). The returned token must be inserted instead of 
- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX at line 82 of sensors.py. 
+ in this [page](https://core.telegram.org/bots#6-botfather).  The returned token must be put in TELEGRAM_TOKEN (AGENT Section) in config.ini. 
 
 
 ### Starting Phidias Shell
@@ -116,7 +115,7 @@ WAIT(1000)
 eShell: main >
 ```
 The value inside the belief WAIT represents the maximum duration of each session in seconds. It can be changed by modifying the value
-of the variable WAIT_TIME (section AGENT) in config.ini. The two layers of the Clauses KB (respectively High KB and Low KB) can be inspected with the following commands:
+of the variable WAIT_TIME (AGENT Section) in config.ini. The two layers of the Clauses KB (respectively High KB and Low KB) can be inspected with the following commands:
 
 ```sh
 eShell: main > hkb()
@@ -169,13 +168,13 @@ In the following picture are shown two different kind of query with wh-questions
 This prototype give back as result a substitutions containing the literal as
 logical representation of the snipplet-result of the query. After a bot reboot, as we can see in the following picture, the result will be slightly different because the High Clauses KB
 will be empty and must be populated getting clauses from the Low Clauses KB, taking in account of a confidence level about the presence of the lemmatized labels in the clauses.
-Such a confidence level, depending of the domain can be changed by modifying the value of MIN_CONFIDENCE (section LKB) in config.ini. The first query will get a result form the Low KB (From LKB: True), while the second one from the High KB (From HKB: True);
+Such a confidence level, depending of the domain can be changed by modifying the value of MIN_CONFIDENCE (LKB Section) in config.ini. The first query will get a result form the Low KB (From LKB: True), while the second one from the High KB (From HKB: True);
 thats because the content of the High KB is preserved during the session, otherwise it can be emptied after a query by changing the value of
-EMPTY_HKB_AFTER_REASONING (section LKB) in config.ini.
+EMPTY_HKB_AFTER_REASONING (LKB Section) in config.ini.
 
 ![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
 
-By changing the values of SHOW_REL (section QA) in config.ini, it can be possible to show the clauses involved in the abduction pre-inference, together with their confidences.
+By changing the values of SHOW_REL (QA Section) in config.ini, it can be possible to show the clauses involved in the abduction pre-inference, together with their confidences.
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query3.JPG)
 

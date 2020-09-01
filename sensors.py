@@ -2,10 +2,15 @@ from phidias.Types import *
 import threading
 import time
 import telegram
+import configparser
 
 
 class TIMEOUT(Reactor): pass
 class message(Reactor): pass
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+TELEGRAM_TOKEN = config.get('AGENT', 'TELEGRAM_TOKEN')
 
 
 class HotwordDetect(Sensor):
@@ -79,8 +84,7 @@ class Chatbot(Sensor):
 
     def on_start(self):
         global BOT
-        BOT = telegram.Bot("1280923336:AAFi6ZVoF6LjJcoYueSuyXDa7Z4l8QAaYTA")
-        #BOT = telegram.Bot("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        BOT = telegram.Bot(TELEGRAM_TOKEN)
 
         self.update_id = None
         self.msgs = [ ]
