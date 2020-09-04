@@ -161,6 +161,7 @@ Barack Obama became the president of United States in 2009.
 
 ### Querying the bot
 
+A detailed overview of how the wh-questions are treated is provided [here](https://github.com/fabiuslongo/ad-caspar/blob/master/wquestions.md).
 In the following picture are shown two different kind of query with wh-questions: 
 
 ![Image 3](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query1.JPG)
@@ -185,4 +186,28 @@ Optionally, with the value of SHOW_REL set to _true_, the closest results can be
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query4.JPG)
 
-A detailed overview of how the wh-questions are treated is provided [here](https://github.com/fabiuslongo/ad-caspar/blob/master/wquestions.md).
+### Nested Reasoning
+
+In order to test the _Nested Reasoning_ inherited from [CASPAR](https://github.com/fabiuslongo/pycaspar) you must be sure some parameters in config.ini are as it follows:
+
+---------------
+
+Section [NL_TO_FOL]:
+* ASSIGN_RULES_ADMITTED = true
+
+Section [REASONING]
+* NESTED_REASONING = true
+
+Section [GEN]
+* GEN_PREP = true
+* GEN_ADJ = true
+* GEN_ADV = true
+
+
+![Image 6](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested1.JPG)
+
+![Image 7](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested2.JPG)
+
+![Image 8](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested3.JPG)
+
+![Image 9](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested4.JPG)

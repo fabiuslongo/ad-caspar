@@ -23,7 +23,7 @@ c4() >> [+STT("Colonel West sells missiles to Cuba")]
 c5() >> [+STT("When an American sells weapons to a hostile nation, that American is a criminal")]
 
 # Query
-q() >> [+STT("Colonel West is a criminal")]
+q() >> [+STT("Colonel West is a criminal?")]
 
 
 # simulating keywords
