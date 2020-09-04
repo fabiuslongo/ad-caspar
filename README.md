@@ -203,11 +203,16 @@ Section [GEN]
 * GEN_ADJ = true
 * GEN_ADV = true
 
+#### populating the knowledge base...
 
 ![Image 6](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested1.JPG)
 
 ![Image 7](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested2.JPG)
 
+#### querying the knowledge base...
+
 ![Image 8](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested3.JPG)
+
+#### querying the knowledge base after a reboot...
 
 ![Image 9](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested4.JPG)
