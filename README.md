@@ -217,4 +217,4 @@ Section [GEN]
 
 ![Image 9](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested4.JPG)
 
-After a failed attempt using the High KB (From HKB: False), a successful reasoning is achieved (From LKB: True) getting query-relevant clauses from the Low KB with a MIN_CONFIDENCE (Section LBK of config.ini) greater than 0.6.
+After a failed attempt using the High KB (From HKB: False), a successful reasoning is achieved (From LKB: True) getting query-relevant clauses from the Low KB with a MIN_CONFIDENCE (Section [LKB] of config.ini) greater than 0.6.
