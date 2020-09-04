@@ -216,3 +216,5 @@ Section [GEN]
 #### querying the knowledge base after a reboot...
 
 ![Image 9](https://github.com/fabiuslongo/ad-caspar/blob/master/images/nested4.JPG)
+
+After a failed attempt using the High KB (From HKB: False), a successful reasoning is achieved (From HKB: True) getting query-relevant clauses from the Low KB with a MIN_CONFIDENCE (Section LBK of config.ini) greater than 0.6.
