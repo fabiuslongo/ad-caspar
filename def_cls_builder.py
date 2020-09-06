@@ -48,7 +48,7 @@ gnd_actions() / (ACTION(I, V, D, X, Y) & ADJ(I, Y, K) & GND(I, Y, M)) >> [show_l
 # prep is turned into a ground
 gnd_actions() / (ACTION(I, V, D, X, Y) & PREP(I, Y, L, O) & no_dav(Y)) >> [show_line("\nact obj not ready to be grounded (prep)..."), prep_to_gnd(), gnd_actions()]
 # applying grounds to actions object
-gnd_actions() / (ACTION(I, V, D, X, Y) & GND(I, Y, M)) >> [show_line("\ngrounds to actions object: ", M), -ACTION(I, V, D, X, Y), -GND(I, Y, M), ground_obj_act(I, V, D, X, Y, M), gnd_actions()]
+gnd_actions() / (ACTION(I, V, D, X, Y) & GND(I, Y, M)) >> [show_line("\ngrounds to actions object: ", M), -ACTION(I, V, D, X, Y), ground_obj_act(I, V, D, X, Y, M), gnd_actions()]
 gnd_actions() / (ACTION(I, V, D, X, Y) & ADJ(I, Y, M)) >> [show_line("\n", M, " as object of ", V), -ACTION(I, V, D, X, Y), -ADJ(I, Y, M), ground_obj_act(I, V, D, X, Y, M), gnd_actions()]
 gnd_actions() >> [show_line("\ngrounding actions done.")]
 
@@ -81,8 +81,10 @@ finalize_gnd() / REMAIN(I, K) >> [show_line("\nturning remain in half clause..."
 finalize_gnd() / GND(I, X, L) >> [show_line("\ncreating remain...", L), -GND(I, X, L), create_remain(I, X, L), finalize_gnd()]
 finalize_gnd() >> [show_line("\nremains finalization done.")]
 
+
 # creating merged definite clauses driven by subj-obj
-process_clause() / (CLAUSE(I, X) & CLAUSE(I, Y) & neq(X, Y) & ACT_CROSS_VAR(I, Z, V)) >> [show_line("\njoining clauses with...", Z, " and ", V), -CLAUSE(I, X), -CLAUSE(I, Y), -ACT_CROSS_VAR(I, Z, V), join_clauses(X, Y, V), process_clause()]
+process_clause() / (CLAUSE(I, X) & CLAUSE(I, Y) & neq(X, Y) & ACT_CROSS_VAR(I, Z, V)) >> [show_line("\njoining clauses with...", Z, " and ", V), -CLAUSE(I, X), -CLAUSE(I, Y), -ACT_CROSS_VAR(I, Z, V), join_clauses(X, Y, V, Z), process_clause()]
+
 
 # creating definite clauses with common left hand-side
 process_clause() / (CLAUSE("RIGHT", X) & LEFT_CLAUSE(Y)) >> [show_line("\ncreating multiple definite clause..."), -CLAUSE("RIGHT", X), join_hand_sides(Y, X), process_clause()]

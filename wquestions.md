@@ -68,6 +68,11 @@ removed from FILTER in parse_en.py and treated properly.
 ```sh
 > Want_VBZ(Mary_NNP(x1), x2)
 ```
+* _what movie have you seen recently?_
+```sh
+> Be_VBZ(x1, Recently_RB(See_VBN(You_PRP(x3), Movie_NN(x2))))
+> Be_VBZ(Recently_RB(See_VBN(You_PRP(x3), Movie_NN(x2))), x1)
+```
 
 
 ### Where-questions
