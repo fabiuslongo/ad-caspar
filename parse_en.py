@@ -21,10 +21,10 @@ class Parse(object):
         print("\nNLP engine initializing. Please wait...")
 
         # python -m spacy download en_core_web_md
-        self.nlp = spacy.load('en_core_web_md')  # 91 MB
+        #self.nlp = spacy.load('en_core_web_md')  # 91 MB
 
         # python -m spacy download en_core_web_lg
-        # self.nlp = spacy.load('en_core_web_lg')  # 789 MB
+        self.nlp = spacy.load('en_core_web_lg')  # 789 MB
 
         if platform.system() == "Windows":
             os.system('cls')
@@ -1407,7 +1407,7 @@ def main():
     LANGUAGE = "eng"
     LEMMMATIZED = False
 
-    sentence = "What movies have you seen recently?"
+    sentence = "a known person is at home"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
