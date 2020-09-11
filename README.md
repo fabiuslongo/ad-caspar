@@ -67,12 +67,12 @@ from python console:
 
 ### python-telegram-bot
 ```sh
-> python -m pip python-telegram-bot
+> python -m pip install python-telegram-bot
 ```
 
 ### pymongo
 ```sh
-> python -m pip pymongo
+> python -m pip install pymongo
 ```
 
 # Testing
