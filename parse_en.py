@@ -1407,7 +1407,7 @@ def main():
     LANGUAGE = "eng"
     LEMMMATIZED = False
 
-    sentence = "a known person is at home"
+    sentence = "When the sun shines strongly, Robert is happy"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
