@@ -1,7 +1,7 @@
 import spacy
 import platform
 import os
-from uniquelizer import *
+from collections import Counter
 
 
 class Parse(object):
@@ -1346,26 +1346,39 @@ class Parse(object):
             ent = "("+X.label_ + ", " + X.text + ")"
             self.ner.append(ent)
 
+        words_list = input_text.split(" ")
+        counter = Counter(words_list)
+        #print("\ncounter: ", counter)
+
+        offset_dict = {}
+        for token in reversed(doc):
+            index = str(counter[token.text])
+            offset_dict[token.idx] = token.text+"0"+index+":"+token.tag_
+            counter[token.text] = counter[token.text] - 1
+
+        #print("\noffset_dict: ", offset_dict)
+
+
         deps = []
         for token in doc:
             new_triple = []
             new_triple.append(token.dep_)
 
             if token.head.lemma_ == '-PRON-':
-                new_triple.append(token.head.text + ':' + token.head.tag_)
+                new_triple.append(offset_dict[token.head.idx])
             else:
                 if LEMMATIZED:
-                    new_triple.append(token.head.lemma_ + ':' + token.head.tag_)
+                    new_triple.append(offset_dict[token.head.idx])
                 else:
-                    new_triple.append(token.head.text + ':' + token.head.tag_)
+                    new_triple.append(offset_dict[token.head.idx])
 
             if token.lemma_ == '-PRON-':
-                new_triple.append(token.text + ':' + token.tag_)
+                new_triple.append(offset_dict[token.idx])
             else:
                 if LEMMATIZED:
-                    new_triple.append(token.lemma_ + ':' + token.tag_)
+                    new_triple.append(offset_dict[token.idx])
                 else:
-                    new_triple.append(token.text+ ':' + token.tag_)
+                    new_triple.append(offset_dict[token.idx])
 
             deps.append(new_triple)
 
@@ -1404,10 +1417,9 @@ class Parse(object):
 
 def main():
     VERBOSE = True
-    LANGUAGE = "eng"
     LEMMMATIZED = False
 
-    sentence = "When the sun shines strongly, Robert is happy"
+    sentence = "a young man that is a true man is a wise man"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
@@ -1419,13 +1431,11 @@ def main():
         dependent = parser.get_lemma(deps[i][2]).capitalize() + ":" + parser.get_pos(deps[i][2])
         deps[i] = [deps[i][0], governor, dependent]
 
-    # Dependencies Uniquezation
-    Ren = Uniquelizer(VERBOSE, LANGUAGE)
-    m_deps = Ren.morph_deps(deps)
-    print("\n" + str(m_deps))
+    print("\n" + str(deps))
 
-    MST = parser.create_MST(m_deps, 'e', 'x')
+    MST = parser.create_MST(deps, 'e', 'x')
     print("\nMST: \n" + str(MST))
+
 
 
 if __name__ == "__main__":

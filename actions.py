@@ -343,8 +343,8 @@ class preprocess_clause(Action):
         if parser.get_flush() is False:
 
             print("USING CACHE....................................................")
-            m_deps = parser.get_last_m_deps()
-            print("\n" + str(m_deps))
+            deps = parser.get_last_deps()
+            print("\n" + str(deps))
 
             vect_LR_fol = fol_manager.get_last_fol()
             ner = parser.get_last_ner()
@@ -364,17 +364,13 @@ class preprocess_clause(Action):
                 dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
                 deps[i] = [deps[i][0], governor, dependent]
 
-            # Dependencies Uniquezation
-            Ren = Uniquelizer(VERBOSE, LANGUAGE)
-            m_deps = Ren.morph_deps(deps)
-
             # paying the ROOT Tense Debt
             if rtd is not None:
                 print("ROOT Tense Debt: ", rtd)
                 # getting ROOT verb
                 old_root_tense = ""
                 new_value = ""
-                for d in m_deps:
+                for d in deps:
                     if d[0] == "ROOT":
                         old_root_tense = d[1]
                         lemma_root = self.get_lemma(d[1])
@@ -382,7 +378,7 @@ class preprocess_clause(Action):
                         d[1] = new_value
                         d[2] = new_value
                         break
-                for d in m_deps:
+                for d in deps:
                     if d[0] != "ROOT":
                         if d[1] == old_root_tense:
                             d[1] = new_value
@@ -391,10 +387,10 @@ class preprocess_clause(Action):
             else:
                 print("no ROOT Tense Debt")
 
-            print("\n" + str(m_deps))
-            parser.set_last_m_deps(m_deps)
+            print("\n" + str(deps))
+            parser.set_last_deps(deps)
 
-            MST = parser.create_MST(m_deps, 'e', 'x')
+            MST = parser.create_MST(deps, 'e', 'x')
             print("\nMST: \n" + str(MST))
 
             for v in MST[1]:
@@ -436,7 +432,7 @@ class preprocess_clause(Action):
             CHECK_IMPLICATION = fol_manager.check_implication(vect_LR_fol)
             if not CHECK_IMPLICATION:
                 if ASSIGN_RULES_ADMITTED:
-                    check_isa = fol_manager.check_for_rule(m_deps, vect_LR_fol)
+                    check_isa = fol_manager.check_for_rule(deps, vect_LR_fol)
                     if check_isa:
                         self.assert_belief(IS_RULE(sentence))
                 dclause = vect_LR_fol[:]
@@ -445,7 +441,7 @@ class preprocess_clause(Action):
                 dclause[1] = ["==>"]
         else:
             # RULE CASE
-            ent_root = self.get_ent_ROOT(m_deps)
+            ent_root = self.get_ent_ROOT(deps)
             dav_rule = self.get_dav_rule(vect_LR_fol, ent_root)
             positive_vect_LR_fol = []
             for v in vect_LR_fol:
@@ -455,7 +451,7 @@ class preprocess_clause(Action):
                 else:
                     positive_vect_LR_fol.append(v)
 
-            vect_LR_fol_plus_isa = fol_manager.build_isa_fol(positive_vect_LR_fol, m_deps)
+            vect_LR_fol_plus_isa = fol_manager.build_isa_fol(positive_vect_LR_fol, deps)
             dclause = fol_manager.isa_fol_to_clause(vect_LR_fol_plus_isa)
 
         print("\nAfter dealing case:\n", dclause)
@@ -539,7 +535,7 @@ class preprocess_clause(Action):
         else:
             mods = []
             nomain_negs = []
-            ent_root = self.get_ent_ROOT(m_deps)
+            ent_root = self.get_ent_ROOT(deps)
             dav_act = self.get_dav_rule(dclause, ent_root)
             for v in dclause:
                 if self.get_pos(v[0]) in GEN_EXTRA_POS and GEN_EXTRA is True:
@@ -1038,11 +1034,7 @@ class assert_command(Action):
 
         deps = parser.get_deps(sentence, True)
 
-        # Dependencies Uniquezation
-        Ren = Uniquelizer(VERBOSE, LANGUAGE)
-        m_deps = Ren.morph_deps(deps)
-
-        TABLE = parser.create_MST(m_deps, 'd', 'x')
+        TABLE = parser.create_MST(deps, 'd', 'x')
 
         m = ManageFols(VERBOSE, LANGUAGE)
         vect_LR_fol = m.build_LR_fol(TABLE, 'd')
@@ -1051,9 +1043,9 @@ class assert_command(Action):
         check_isa = False
         check_implication = m.check_implication(vect_LR_fol)
         if check_implication is False:
-            check_isa = m.check_isa(vect_LR_fol, m_deps)
+            check_isa = m.check_isa(vect_LR_fol, deps)
 
-        gentle_LR_fol = m.vect_LR_to_gentle_LR(vect_LR_fol, m_deps, check_implication, check_isa)
+        gentle_LR_fol = m.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
         print(str(gentle_LR_fol))
 
         if vect_LR_fol[1][0] == "==>":
@@ -1793,13 +1785,14 @@ class assert_sequence(Action):
         deps = parser.get_deps(sentence, False)
         print(deps)
 
-        first_word = parser.get_lemma(deps[0][2]).lower()
+        first_word = parser.get_lemma(deps[0][2]).lower()[:-2]
+        print("first_word: ", first_word)
         root_index = 0
         root = ""
 
         for i in range(len(deps) - 1):
             if deps[i][0] == "ROOT":
-                root = parser.get_lemma(deps[i][2])
+                root = parser.get_lemma(deps[i][2])[:-2]
                 root_index = i
                 break
 
@@ -1808,9 +1801,9 @@ class assert_sequence(Action):
             snipplet = ""
             for i in range(1, len(deps)-1):
                 if i == 1:
-                    snipplet = parser.get_lemma(deps[i][2])
+                    snipplet = parser.get_lemma(deps[i][2])[:-2]
                 else:
-                    snipplet = snipplet+" "+parser.get_lemma(deps[i][2])
+                    snipplet = snipplet+" "+parser.get_lemma(deps[i][2])[:-2]
             self.assert_belief(SEQ("AUX", snipplet))
 
         elif first_word.lower() in ["who", "what", "which", "when", "where"]:
@@ -1826,13 +1819,13 @@ class assert_sequence(Action):
 
             # populating post-verb chunk
             for i in range(root_index + 1, len(deps) - 1):
-                if deps[i][0] == "ccomp" and parser.get_lemma(deps[i][1]) == root:
-                    compl_root = parser.get_lemma(deps[i][2])
+                if deps[i][0] == "ccomp" and parser.get_lemma(deps[i][1])[:-2] == root:
+                    compl_root = parser.get_lemma(deps[i][2])[:-2]
                 else:
                     if post_root == "":
-                        post_root = parser.get_lemma(deps[i][2])
+                        post_root = parser.get_lemma(deps[i][2])[:-2]
                     else:
-                        post_root = post_root + " " + parser.get_lemma(deps[i][2])
+                        post_root = post_root + " " + parser.get_lemma(deps[i][2])[:-2]
 
             if len(compl_root) > 0:
                 self.assert_belief(ROOT(root+" "+compl_root))
@@ -1843,23 +1836,23 @@ class assert_sequence(Action):
             # getting aux index and value
             for i in range(1, len(deps) - 1):
                 if deps[i][0] in ["aux", "auxpass"] and i < root_index:
-                    aux = parser.get_lemma(deps[i][2])
+                    aux = parser.get_lemma(deps[i][2])[:-2]
                     aux_index = i
                     break
 
             # getting pre-aux frame
             for i in range(1, aux_index):
                 if len(pre_aux) == 0:
-                    pre_aux = parser.get_lemma(deps[i][2])
+                    pre_aux = parser.get_lemma(deps[i][2])[:-2]
                 else:
-                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])
+                    pre_aux = pre_aux + " " + parser.get_lemma(deps[i][2])[:-2]
 
             # getting post-aux frame
             for i in range(aux_index + 1, root_index):
                 if len(post_aux) == 0:
-                    post_aux = parser.get_lemma(deps[i][2])
+                    post_aux = parser.get_lemma(deps[i][2])[:-2]
                 else:
-                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])
+                    post_aux = post_aux + " " + parser.get_lemma(deps[i][2])[:-2]
 
             print("\npre_aux: ", pre_aux)
             print("aux: ", aux)
