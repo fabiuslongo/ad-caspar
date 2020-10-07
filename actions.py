@@ -317,8 +317,6 @@ class join_clauses(Action):
         self.assert_belief(DEF_CLAUSE(new_clause))
 
 
-
-
 class preprocess_clause(Action):
 
     def execute(self, *args):

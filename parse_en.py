@@ -64,14 +64,6 @@ class Parse(object):
         return self.ner
 
 
-    def set_last_m_deps(self, m_deps):
-        self.last_m_deps = m_deps
-
-
-    def get_last_m_deps(self):
-        return self.last_m_deps
-
-
     def set_last_deps(self, deps):
         self.last_deps = deps
 
@@ -1419,7 +1411,7 @@ def main():
     VERBOSE = True
     LEMMMATIZED = False
 
-    sentence = "a young man that is a true man is a wise man"
+    sentence = "The Rocky Montains are located all the way up to Alaska"
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
