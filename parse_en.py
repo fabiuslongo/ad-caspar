@@ -1180,6 +1180,12 @@ class Parse(object):
 
                     print('\nDEPENDENCY NOT HANDLED: '+triple[0])
 
+                # correcting davidsonian prep preceding unvalued actions
+                for pr in preps:
+                    for p in pendings:
+                        if pr[1] in p:
+                            pr[1] = p[1]
+
         if len(adv_adj) > 0:
 
             ADVERB_PROCESSED = []
@@ -1255,12 +1261,6 @@ class Parse(object):
                 print('COND: ' + str(cond))
 
         # post-processing steps ----------------------
-
-        # correcting davidsonian prep preceding unvalued actions
-        for pr in preps:
-            for p in pendings:
-                if pr[1] in p:
-                    pr[1] = p[1]
 
         # adding reflective preposition without object
         if len(pending_prep) > 0:
@@ -1344,18 +1344,21 @@ class Parse(object):
             ent = "("+X.label_ + ", " + X.text + ")"
             self.ner.append(ent)
 
-        words_list = input_text.split(" ")
+        words_list = []
+        for token in doc:
+            words_list.append(token.text)
+
         counter = Counter(words_list)
-        #print("\ncounter: ", counter)
+        # print("\ncounter: ", counter)
 
         offset_dict = {}
         for token in reversed(doc):
-            index = str(counter[token.text])
-            offset_dict[token.idx] = token.text+"0"+index+":"+token.tag_
-            counter[token.text] = counter[token.text] - 1
+            index = counter[token.text]
+            offset_dict[token.idx] = token.text+"0"+str(index)+":"+token.tag_
+            counter[token.text] = index - 1
 
-        #print("\noffset_dict: ", offset_dict)
-
+        # print("\ncounter: ", counter)
+        # print("\noffset_dict: ", offset_dict)
 
         deps = []
         for token in doc:
@@ -1417,7 +1420,7 @@ def main():
     VERBOSE = True
     LEMMMATIZED = False
 
-    sentence = "In this area there has been an important early work by psycholinguists"
+    sentence = "When an American sells weapons to a hostile nation, that American is a criminal"
 
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
