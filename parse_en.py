@@ -581,8 +581,8 @@ class Parse(object):
 
                 elif triple[0] == "prep":
 
-                    davidsonian_found = "UNASSIGNED"
-                    found_var = "UNASSIGNED"
+                    davidsonian_found = triple[1]
+                    found_var = triple[1]
                     found_mod = "UNASSIGNED"
                     d_found = False
 
@@ -1256,6 +1256,12 @@ class Parse(object):
 
         # post-processing steps ----------------------
 
+        # correcting davidsonian prep preceding unvalued actions
+        for pr in preps:
+            for p in pendings:
+                if pr[1] in p:
+                    pr[1] = p[1]
+
         # adding reflective preposition without object
         if len(pending_prep) > 0:
             prep = []
@@ -1411,7 +1417,8 @@ def main():
     VERBOSE = True
     LEMMMATIZED = False
 
-    sentence = "The Rocky Montains are located all the way up to Alaska"
+    sentence = "In this area there has been an important early work by psycholinguists"
+
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
     parser.set_last_deps(deps)
