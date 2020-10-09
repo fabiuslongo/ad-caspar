@@ -7,7 +7,7 @@ from collections import Counter
 class Parse(object):
     def __init__(self, VERBOSE):
 
-        self.FILTER = ['det', 'punct', 'aux', 'ROOT', 'auxpass', 'cc', 'case', 'intj', 'dep', 'predet', 'advcl']
+        self.FILTER = ['det', 'punct', 'aux', 'auxpass', 'cc', 'case', 'intj', 'dep', 'predet', 'advcl']
 
         self.adv_adj_POS = ['RB', 'UH', 'RP', 'PRP', 'RBS', 'JJ', 'NN', 'RBR', 'DT']
 
@@ -15,7 +15,7 @@ class Parse(object):
 
         self.VERBOSE = VERBOSE
 
-        self.BLACK_LIST_WORDS = ['that', 'which', 'then', 'That', 'Which', 'Then']
+        self.BLACK_LIST_WORDS = ['that', 'which', 'then']
 
         # nlp engine instantiation
         print("\nNLP engine initializing. Please wait...")
@@ -111,9 +111,10 @@ class Parse(object):
         pending_prt = []
 
         for triple in deps:
-            if triple[0] not in self.FILTER:
+            if triple[0] not in self.FILTER and triple[0] != "ROOT":
 
-                if triple[0] == "nsubj" or triple[0] == "nsubjpass":
+                # noun subjects
+                if triple[0] == "nsubj":
 
                     PENDING_FOUND = False
 
@@ -147,10 +148,7 @@ class Parse(object):
                         assignment = []
                         assignment.append(var+str(index_args_counter))
 
-                        if triple[0] == "nsubjpass":
-                            assignment.append('?')
-                        else:
-                            assignment.append(triple[2])
+                        assignment.append(triple[2])
                         var_list.append(assignment)
 
                         index_args_counter = index_args_counter + 1
@@ -159,10 +157,7 @@ class Parse(object):
                         assignment = []
                         assignment.append(var+str(index_args_counter))
 
-                        if triple[0] == "nsubjpass":
-                            assignment.append(triple[2])
-                        else:
-                            assignment.append('?')
+                        assignment.append('?')
                         var_list.append(assignment)
 
                         pendings.append(p)
@@ -178,6 +173,67 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # noun subjects passive
+                elif triple[0] == "nsubjpass":
+
+                    PENDING_FOUND = False
+
+                    # looking for a pending
+                    for p in pendings:
+                        if triple[1] == p[0]:
+                            PENDING_FOUND = True
+
+                            index_args_counter = index_args_counter + 1
+                            p[2] = var + str(index_args_counter)
+
+                            assignment = []
+                            assignment.append(var + str(index_args_counter))
+                            assignment.append(triple[2])
+
+                            var_list.append(assignment)
+
+                    if PENDING_FOUND == False:
+
+                        # creating a pending
+
+                        p = []
+                        p.append(triple[1])
+
+                        davidsonian_index = davidsonian_index + 1
+                        p.append(dav+str(davidsonian_index))
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var+str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+
+                        assignment.append('?')
+                        var_list.append(assignment)
+
+                        index_args_counter = index_args_counter + 1
+                        p.append(var + str(index_args_counter))
+
+                        assignment = []
+                        assignment.append(var+str(index_args_counter))
+
+                        assignment.append(triple[2])
+                        var_list.append(assignment)
+
+                        pendings.append(p)
+
+                    if self.VERBOSE is True:
+                        print('--------- nsubjpass ----------')
+                        print('pendings: ' + str(pendings))
+                        print('pending_prep: ' + str(pending_prep))
+                        print('preps: ' + str(preps))
+                        print('var_list: ' + str(var_list))
+                        print('mods: ' + str(mods))
+                        print('compounds: ' + str(compounds))
+                        print('pending_agent: ' + str(pending_agent))
+                        print('adv_adj: ' + str(adv_adj))
+
+                # expletive existentials (there) in the subject position.
                 elif triple[0] == "expl":
 
                     # creating a pending
@@ -212,6 +268,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # clausal subjects
                 elif triple[0] == "csubj":
 
                     davidsonian_found = "UNASSIGNED"
@@ -228,7 +285,7 @@ class Parse(object):
                     davidsonian_index = davidsonian_index + 1
                     p.append(dav+str(davidsonian_index))
 
-                    # setting retrived davisdonian
+                    # setting retrived davidsonian
                     p.append(davidsonian_found)
 
                     index_args_counter = index_args_counter + 1
@@ -252,6 +309,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # parenthetical modifiers
                 elif triple[0] == "parataxis":
 
                     davidsonian_found = "UNASSIGNED"
@@ -280,6 +338,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # clausal complements
                 elif triple[0] == "ccomp":
 
                     davidsonian_found = "UNASSIGNED"
@@ -350,6 +409,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # Clausal modifiers of noun
                 elif triple[0] == "acl":
 
                     PENDING_FOUND = False
@@ -410,6 +470,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # Relative clause modifiers
                 elif triple[0] == "relcl":
 
                     PENDING_FOUND = False
@@ -493,6 +554,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # direct objects
                 elif triple[0] == "dobj":
 
                     PENDING_FOUND = False
@@ -555,7 +617,8 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
-                elif triple[0] == "attr" or triple[0] == "acomp":
+                # attribute or adjectival complements
+                elif triple[0] in ["attr", "acomp"]:
 
                     # updating var_list
                     var_to_change = 'UNASSIGNED'
@@ -579,6 +642,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # prepositional modifiers
                 elif triple[0] == "prep":
 
                     davidsonian_found = triple[1]
@@ -692,6 +756,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # agents
                 elif triple[0] == "agent":
 
                     pending_agent.append(triple[1])
@@ -703,7 +768,8 @@ class Parse(object):
                         print('--------- agent ----------')
                         print('pending_agent: ' + str(pending_agent))
 
-                elif triple[0] == "pobj" or triple[0] == "pcomp":
+                # object/complement of prepositions
+                elif triple[0] in ["pobj", "pcomp"]:
 
                     # updating var_list
 
@@ -755,7 +821,8 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
-                elif triple[0] == "xcomp" or triple[0] == "advcl":
+                # open clausal complements or adverbial clause modifiers
+                elif triple[0] in ["xcomp", "advcl"]:
 
                     PENDING_FOUND = False
                     PAST_PART_CASE = False
@@ -844,6 +911,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # object predicates
                 elif triple[0] == "oprd":
 
                     var_found = "UNASSIGNED"
@@ -888,7 +956,8 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
-                elif triple[0] == "amod" or triple[0] == "poss" or triple[0] == "nummod" or triple[0] == "nmod" or triple[0] == 'appos' or triple[0] == 'quantmod':
+                # adjectival/possession/number/noun phrase as adverbial/appositional/quantifier modifiers
+                elif triple[0] in ["amod", "poss", "nummod", "nmod", "appos", "quantmod"]:
 
                     m = []
                     m.append(triple[1])
@@ -916,6 +985,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # compound modifiers
                 elif triple[0] == "compound":
 
                     new_compound = []
@@ -940,6 +1010,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # conjuncts
                 elif triple[0] == "conj":
 
                     #dealing with not:RB case classified inside a conj
@@ -1005,6 +1076,7 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # particles
                 elif triple[0] == "prt":
 
                     PENDING_FOUND = False
@@ -1042,13 +1114,13 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
+                # datives
                 elif triple[0] == "dative":
 
                     lemma_pure = self.get_lemma(triple[2])[:-2]
-                    if self.get_pos(triple[2]) == 'PRP' and lemma_pure not in self.BLACK_LIST_WORDS:
+                    if self.get_pos(triple[2]) == 'PRP' and lemma_pure.lower() not in self.BLACK_LIST_WORDS:
 
-                        # threated as adverb
-
+                        # treated as adverb
                         m = []
                         m.append(triple[1])
                         m.append(triple[2])
@@ -1059,9 +1131,9 @@ class Parse(object):
                             if adv[0] == triple[2]:
                                 adv[0] = triple[1]
 
-                    elif lemma_pure not in self.BLACK_LIST_WORDS:
-                        # threated as preposition
+                    elif lemma_pure.lower() not in self.BLACK_LIST_WORDS:
 
+                        # treated as preposition
                         davidsonian_found = "UNASSIGNED"
                         found_var = "UNASSIGNED"
                         found_mod = "UNASSIGNED"
@@ -1070,7 +1142,6 @@ class Parse(object):
                         pending_prep.append(triple[2])
 
                         # searching triple[1] in mods --- case oprd
-
                         for m in mods:
                             if m[1] == triple[1]:
                                 found_mod = m[0]
@@ -1090,7 +1161,6 @@ class Parse(object):
                                 d_found = True
 
                         # searching triple[1] in compounds
-
                         if d_found is False:
                             for m in mods:
                                 if m[1] == triple[1]:
@@ -1104,7 +1174,6 @@ class Parse(object):
                                     d_found = True
 
                         # searching triple[1] in pendings
-
                         if d_found is False:
                             for p in pendings:
                                 if self.get_first_token(p[0]) == triple[1] or self.get_first_token(p[0]) == found_mod:
@@ -1112,15 +1181,12 @@ class Parse(object):
                                     d_found = True
 
                         if d_found is False:
-
                             # retriving triple[1] from var_list
-
                             for v in var_list:
                                 if v[1] == triple[1]:
                                     found_var = v[0]
 
                             # retriving related davidsonian from pendings and preps table
-
                             for prep in preps:
                                 if prep[2] == found_var:
                                     davidsonian_found = prep[1]
@@ -1132,13 +1198,11 @@ class Parse(object):
                         pending_prep.append(davidsonian_found)
 
                         # updating var_list
-
                         index_args_counter = index_args_counter + 1
                         assignment = []
                         assignment.append(var + str(index_args_counter))
                         assignment.append('?')
                         var_list.append(assignment)
-
                         pending_prep.append(var + str(index_args_counter))
 
                     if self.VERBOSE is True:
@@ -1152,7 +1216,8 @@ class Parse(object):
                         print('pending_agent: ' + str(pending_agent))
                         print('adv_adj: ' + str(adv_adj))
 
-                elif triple[0] == "advmod" or triple[0] == "mark" or triple[0] == "neg" or triple[0] == "npadvmod":
+                # adverbial modifiers or noun phrase as adverbial modifiers/markers/negations
+                elif triple[0] in ["advmod", "mark", "neg", "npadvmod"]:
 
                     # firstly adverb assumed to be cond
                     m = []
@@ -1177,7 +1242,6 @@ class Parse(object):
                         print('adv_adj: ' + str(adv_adj))
 
                 else:
-
                     print('\nDEPENDENCY NOT HANDLED: '+triple[0])
 
                 # correcting davidsonian prep preceding unvalued actions
@@ -1224,7 +1288,7 @@ class Parse(object):
                 for i in range(len(adv_adj)):
                     if adv_adj[i] not in ADVERB_PROCESSED:
                         adv_pure = self.get_lemma(adv_adj[i][1])[:-2]
-                        if adv_pure not in self.BLACK_LIST_WORDS:
+                        if adv_pure.lower() not in self.BLACK_LIST_WORDS:
                             if self.get_pos(adv_adj[i][1]) not in self.POS_FILTER:
                                 if adv_adj[i][0] == self.get_first_token(p[0]) or adv_adj[i][0] == self.get_last_token(p[0]):
                                     if self.get_pos(adv_adj[i][1]) in self.adv_adj_POS:
@@ -1352,9 +1416,12 @@ class Parse(object):
         # print("\ncounter: ", counter)
 
         offset_dict = {}
+        offset_dict_lemmatized = {}
+
         for token in reversed(doc):
             index = counter[token.text]
             offset_dict[token.idx] = token.text+"0"+str(index)+":"+token.tag_
+            offset_dict_lemmatized[token.idx] = token.lemma_+"0"+str(index)+":"+token.tag_
             counter[token.text] = index - 1
 
         # print("\ncounter: ", counter)
@@ -1369,7 +1436,7 @@ class Parse(object):
                 new_triple.append(offset_dict[token.head.idx])
             else:
                 if LEMMATIZED:
-                    new_triple.append(offset_dict[token.head.idx])
+                    new_triple.append(offset_dict_lemmatized[token.head.idx])
                 else:
                     new_triple.append(offset_dict[token.head.idx])
 
@@ -1377,7 +1444,7 @@ class Parse(object):
                 new_triple.append(offset_dict[token.idx])
             else:
                 if LEMMATIZED:
-                    new_triple.append(offset_dict[token.idx])
+                    new_triple.append(offset_dict_lemmatized[token.idx])
                 else:
                     new_triple.append(offset_dict[token.idx])
 
@@ -1418,9 +1485,9 @@ class Parse(object):
 
 def main():
     VERBOSE = True
-    LEMMMATIZED = False
+    LEMMMATIZED = True
 
-    sentence = "When an American sells weapons to a hostile nation, that American is a criminal"
+    sentence = "The beast drunk his meal"
 
     parser = Parse(VERBOSE)
     deps = parser.get_deps(sentence, LEMMMATIZED)
