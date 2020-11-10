@@ -38,7 +38,7 @@ s1() >> [simulate_sensor("be", "time", "12.00")]
 s2() >> [simulate_sensor("be", "temperature", "25")]
 
 
-def_vars('X', 'Y', 'Z', 'T', 'W', 'K', 'J', 'M', 'N', 'D', 'I', 'V', 'L', 'O', 'E', 'U', 'C', 'A')
+
 
 
 # Front-End STT

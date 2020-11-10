@@ -18,22 +18,21 @@ config.read('config.ini')
 VERBOSE = config.getboolean('NL_TO_FOL', 'VERBOSE')
 LANGUAGE = config.get('NL_TO_FOL', 'LANGUAGE')
 ASSIGN_RULES_ADMITTED = config.getboolean('NL_TO_FOL', 'ASSIGN_RULES_ADMITTED')
-UNIQUE_NOUNS = config.getboolean('NL_TO_FOL', 'UNIQUE_NOUNS')
-UNIQUE_ACT = config.getboolean('NL_TO_FOL', 'UNIQUE_ACT')
-UNIQUE_ADJ = config.getboolean('NL_TO_FOL', 'UNIQUE_ADJ')
-UNIQUE_PRP = config.getboolean('NL_TO_FOL', 'UNIQUE_PRP')
-UNIQUE_ADV = config.getboolean('NL_TO_FOL', 'UNIQUE_ADV')
+
 WAIT_TIME = config.getint('AGENT', 'WAIT_TIME')
 INCLUDE_ACT_POS = config.getboolean('POS', 'INCLUDE_ACT_POS')
 INCLUDE_NOUNS_POS = config.getboolean('POS', 'INCLUDE_NOUNS_POS')
 INCLUDE_ADJ_POS = config.getboolean('POS', 'INCLUDE_ADJ_POS')
 INCLUDE_PRP_POS = config.getboolean('POS', 'INCLUDE_PRP_POS')
 INCLUDE_ADV_POS = config.getboolean('POS', 'INCLUDE_ADV_POS')
+OBJ_JJ_TO_NOUN = config.getboolean('POS', 'OBJ_JJ_TO_NOUN')
+
 GEN_PREP = config.getboolean('GEN', 'GEN_PREP')
 GEN_ADJ = config.getboolean('GEN', 'GEN_ADJ')
 GEN_ADV = config.getboolean('GEN', 'GEN_ADV')
 GEN_EXTRA = config.getboolean('GEN', 'GEN_EXTRA')
 GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
+
 HOST = config.get('LKB', 'HOST')
 LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
@@ -209,8 +208,20 @@ class GEN_MASK(Belief): pass
 class ACT_CROSS_VAR(Belief): pass
 
 
-# Question Answering beliefs
+# parse rule beliefs
+class DEP(Belief): pass
+class MST_ACT(Belief): pass
+class MST_VAR(Belief): pass
+class MST_PREP(Belief): pass
+class MST_BIND(Belief): pass
+class MST_COMP(Belief): pass
+class MST_COND(Belief): pass
+class parse_deps(Procedure): pass
+class feed_mst(Procedure): pass
+class PROCESS_STORED_MST(Reactor): pass
 
+
+# Question Answering beliefs
 class SEQ(Belief): pass
 class CAND(Belief): pass
 class ANSWERED(Belief): pass
@@ -259,9 +270,8 @@ class lemma_in_syn(ActiveBelief):
         synset = str(arg2).split("'")[1]
 
         pos = wordnet.VERB
-        language = "eng"
 
-        syns = wordnet.synsets(verb, pos=pos, lang=language)
+        syns = wordnet.synsets(verb, pos=pos, lang=LANGUAGE)
         for syn in syns:
             if syn.name() == synset:
                 return True
@@ -276,43 +286,27 @@ class join_clauses(Action):
         verb = str(arg3).split("'")[3]
         common_var = str(arg4).split("'")[3]
 
-        print("\nclause1: ", clause1)
-        print("clause2: ", clause2)
-        print("verb: ", verb)
-        print("common_var: ", common_var)
-
         match = SequenceMatcher(None, clause1, clause2).find_longest_match(0, len(clause1), 0, len(clause2))
         common = clause1[match.a: match.a + match.size]
-
-        print("match: ", match)
-        print("common: ", common)
 
         while common[0] == "(" or common[0] == ")" or common[0] == "," or common[0] == " ":
             common = common[1:]
 
         num_par_open = common.count("(")
-        print("num_par_open: ", num_par_open)
         num_par_closed = common.count(")")
-        print("num_par_closed: ", num_par_closed)
 
         while common[-1] != ")":
             common = common[:len(common) - 1]
-
-        print("common cleaned: ", common)
 
         while num_par_open < num_par_closed:
             common = common[:len(common) - 1]
             num_par_open = common.count("(")
             num_par_closed = common.count(")")
 
-        print("common fixed: ", common)
-
         if str(clause1).find(verb) == -1:
             new_clause = clause1.replace(common, clause2)
         else:
             new_clause = clause2.replace(common, clause1)
-
-        print(new_clause)
 
         self.assert_belief(DEF_CLAUSE(new_clause))
 
@@ -697,12 +691,7 @@ class preprocess_clause(Action):
         # prepositions
         for v in vect_fol:
             if len(v) == 3:
-
-                if UNIQUE_PRP:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-
+                label = self.get_nocount_lemma(v[0])
                 if GEN_PREP is False or id == "LEFT":
                     if INCLUDE_PRP_POS:
                         lemma = label
@@ -734,11 +723,8 @@ class preprocess_clause(Action):
             ACTION_ASSERTED = False
             if len(v) == 4:
 
-                if UNIQUE_ACT:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-                    pos = self.get_pos(v[0])
+                label = self.get_nocount_lemma(v[0])
+                pos = self.get_pos(v[0])
 
                 if INCLUDE_ACT_POS:
                     lemma = label
@@ -780,11 +766,7 @@ class preprocess_clause(Action):
         for v in vect_fol:
             if len(v) == 2:
                 if self.get_pos(v[0]) in ['NNP', 'NNPS', 'PRP', 'CD', 'NN', 'NNS', 'PRP', 'PRP$']:
-                    if UNIQUE_NOUNS:
-                        label = v[0]
-                    else:
-                        label = self.get_nocount_lemma(v[0])
-
+                    label = self.get_nocount_lemma(v[0])
                     if INCLUDE_NOUNS_POS:
                         lemma = label
                     else:
@@ -797,12 +779,7 @@ class preprocess_clause(Action):
         # adjectives, adverbs
         for v in vect_fol:
             if self.get_pos(v[0]) in ['JJ', 'JJR', 'JJS']:
-
-                if UNIQUE_ADJ:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-
+                label = self.get_nocount_lemma(v[0])
                 if GEN_ADJ is False or id == "LEFT":
 
                     if INCLUDE_ADJ_POS:
@@ -825,11 +802,7 @@ class preprocess_clause(Action):
                         print("ADJ(" + str(id) + ", " + v[1] + ", " + lemma + ")")
 
             elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS']:
-
-                if UNIQUE_ADV:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
+                label = self.get_nocount_lemma(v[0])
 
                 if GEN_ADV is False or id == "LEFT":
                     if INCLUDE_ADV_POS:
@@ -842,10 +815,8 @@ class preprocess_clause(Action):
                         print("ADV(" + str(id) + ", " + v[1] + ", " + lemma + ")")
 
                 elif v[0] in voc and voc[v[0]] is True:
-                    if INCLUDE_ADV_POS:
-                        lemma = label
-                    else:
-                        lemma = parser.get_lemma(label)
+
+                    lemma = parser.get_lemma(label)
 
                     if v[1] in admissible_vars:
                         self.assert_belief(ADV(str(id), v[1], lemma))

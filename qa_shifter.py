@@ -91,7 +91,7 @@ class check_cop(ActiveBelief):
 
 
 
-def_vars('X', 'Y', 'Z', 'V', 'O', 'A', 'K')
+
 
 
 # POLAR
