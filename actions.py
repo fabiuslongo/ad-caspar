@@ -15,6 +15,10 @@ from lkb_manager import *
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+cnt = itertools.count(1)
+dav = itertools.count(1)
+
+
 VERBOSE = config.getboolean('NL_TO_FOL', 'VERBOSE')
 LANGUAGE = config.get('NL_TO_FOL', 'LANGUAGE')
 ASSIGN_RULES_ADMITTED = config.getboolean('NL_TO_FOL', 'ASSIGN_RULES_ADMITTED')
@@ -89,11 +93,9 @@ class produce_mod(Procedure): pass
 
 # Reactive procedures - routines
 class parse_routine(Procedure): pass
-
 class produce_conds(Procedure): pass
 class aggr_ent_conds(Procedure): pass
 class produce_mod_conds(Procedure): pass
-
 class produce_routine(Procedure): pass
 class aggr_ent_rt(Procedure): pass
 class produce_mod_rt(Procedure): pass
@@ -113,8 +115,7 @@ class hkb(Procedure): pass
 class lkb(Procedure): pass
 class flush(Procedure): pass
 
-
-# initialize Clauses Kb
+# initialize Clauses Kbs
 class chkb(Procedure): pass
 class clkb(Procedure): pass
 
@@ -124,15 +125,12 @@ class t(Procedure): pass
 # mode reactors
 class HOTWORD_DETECTED(Reactor): pass
 class STT(Reactor): pass
-
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
 class REASON(Belief): pass
 class RETRACT(Belief): pass
 class IS_RULE(Belief): pass
 class WAIT(Belief): pass
-class OUT(Reactor): pass
-class MSG(Reactor): pass
 
 # domotic reactive routines
 class r1(Procedure): pass
@@ -179,8 +177,11 @@ class COND_PRE_MOD(Belief): pass
 
 class SENSOR(Belief): pass
 class START_ROUTINE(Reactor): pass
-class CHAT_ID(Belief): pass
+
+# Chatbot beliefs
+class OUT(Reactor): pass
 class MSG(Reactor): pass
+class CHAT_ID(Belief): pass
 
 # clause
 class CLAUSE(Belief): pass
@@ -207,7 +208,6 @@ class GEN_MASK(Belief): pass
 # Actions crossing var
 class ACT_CROSS_VAR(Belief): pass
 
-
 # parse rule beliefs
 class DEP(Belief): pass
 class MST_ACT(Belief): pass
@@ -231,6 +231,7 @@ class LP(Belief): pass
 class TIME_PREP(Belief): pass
 class ROOT(Belief): pass
 class RELATED(Belief): pass
+
 
 
 class set_wait(Action):
@@ -1654,6 +1655,265 @@ class show_fol_kb(Action):
         print("\n" + str(len(kb_fol.clauses)) + " clauses in Higher Knowledge Base")
 
 
+# ---------------------- MST Builder Section
+
+class parse_rules(Action):
+    """Asserting dependencies related beliefs."""
+    def execute(self, arg):
+
+        parser.flush()
+
+        sent = str(arg).split("'")[3]
+        print("\n", sent)
+        deps = parser.get_deps(sent, True)
+        print("\n", deps)
+        parser.set_last_deps(deps)
+
+        for dep in deps:
+            self.assert_belief(DEP(dep[0], str(dep[1]), str(dep[2])))
+
+
+class create_MST_ACT(Action):
+    """Asserting an MST  Action."""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        subj = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        subj_var = "x"+str(next(cnt))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
+        self.assert_belief(MST_VAR(subj_var, subj))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_ACT_PASS(Action):
+    """Asserting an MST PASSIVE Action."""
+    def execute(self, arg1, arg2):
+        verb = str(arg1).split("'")[3]
+        subj = str(arg2).split("'")[3]
+
+        davidsonian = "e" + str(next(dav))
+        subj_var = "x"+str(next(cnt))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, obj_var, subj_var))
+        self.assert_belief(MST_VAR(subj_var, subj))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_PREP(Action):
+    """Asserting an MST preposition."""
+    def execute(self, arg1, arg2):
+        dav = str(arg1).split("'")[3]
+        prep = str(arg2).split("'")[3]
+
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_PREP(prep, dav, obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class COND_WORD(ActiveBelief):
+    """Checking for conditionals related words."""
+    def evaluate(self, x):
+
+        word = str(x).split("'")[3]
+        # Check for conditional word
+        if word.upper()[0:4] == "WHEN":
+            return True
+        else:
+            return False
+
+
+class NBW(ActiveBelief):
+    """Checking for not blacklisted words."""
+    def evaluate(self, x):
+
+        word = str(x).split("'")[3]
+
+        # Check for conditional word
+        if self.get_lemma(word)[:-2].lower() not in ["that"]:
+            return True
+        else:
+            return False
+
+    def get_lemma(self, s):
+        s_list = s.split(':')
+        return s_list[0]
+
+
+class feed_mst_actions_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1, arg2, arg3, arg4):
+        dav = str(arg1).split("'")[3]
+        verb = str(arg2).split("'")[3]
+        subj = str(arg3).split("'")[3]
+        obj = str(arg4).split("'")[3]
+
+        action = []
+        action.append(dav)
+        action.append(verb)
+        action.append(subj)
+        action.append(obj)
+
+        parser.feed_MST(action, 0)
+
+
+class feed_mst_vars_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1, arg2):
+        var = str(arg1).split("'")[3]
+        val = str(arg2).split("'")[3]
+
+        variable = []
+        variable.append(var)
+        variable.append(val)
+
+        parser.feed_MST(variable, 1)
+
+
+class feed_mst_preps_parser(Action):
+    """Feed MST preps parser"""
+    def execute(self, arg1, arg2, arg3):
+        label = str(arg1).split("'")[3]
+        var = str(arg2).split("'")[3]
+        var_obj = str(arg3).split("'")[3]
+
+        prep = []
+        prep.append(label)
+        prep.append(var)
+        prep.append(var_obj)
+
+        parser.feed_MST(prep, 2)
+
+
+class feed_mst_binds_parser(Action):
+    """Feed MST binds parser"""
+    def execute(self, arg1, arg2):
+        related = str(arg1).split("'")[3]
+        relating = str(arg2).split("'")[3]
+
+        bind = []
+        bind.append(related)
+        bind.append(relating)
+
+        parser.feed_MST(bind, 3)
+
+
+class feed_mst_comps_parser(Action):
+    """Feed MST comps parser"""
+    def execute(self, arg1, arg2):
+        related = str(arg1).split("'")[3]
+        relating = str(arg2).split("'")[3]
+
+        comp = []
+        comp.append(related)
+        comp.append(relating)
+
+        parser.feed_MST(comp, 4)
+
+
+class feed_mst_conds_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1):
+        cond = str(arg1).split("'")[3]
+
+        parser.feed_MST(cond, 5)
+
+
+class flush_parser_cache(Action):
+    """Flushing parser cache"""
+    def execute(self):
+        parser.flush()
+
+
+class concat_mst_verbs(Action):
+    """Concatenate composite verbs"""
+    def execute(self, arg1, arg2, arg3, arg4, arg5):
+        verb1 = str(arg1).split("'")[3]
+        verb2 = str(arg2).split("'")[3]
+        dav = str(arg3).split("'")[3]
+        subj = str(arg4).split("'")[3]
+        obj = str(arg5).split("'")[3]
+
+        self.assert_belief(MST_ACT(verb1+"_"+verb2, dav, subj, obj))
+
+
+class Past_Part(ActiveBelief):
+    """Checking for Past Participle tense"""
+    def evaluate(self, x):
+
+        label = str(x).split("'")[3]
+
+        if label.split(':')[1] == "VBN":
+            return True
+        else:
+            return False
+
+
+class Wh_Det(ActiveBelief):
+    """Checking for Wh-determiner"""
+    def evaluate(self, x):
+
+        label = str(x).split("'")[3]
+
+        if label != "?":
+            if label.split(':')[1] == "WDT":
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
+class create_MST_ACT_SUBJ(Action):
+    """Asserting an MST Action with custom var subj"""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        subj_var = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_ACT_EX(Action):
+    """Asserting an MST Existencial"""
+    def execute(self, arg1):
+
+        verb = str(arg1).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x" + str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_IMP_MST_ACT(Action):
+    """Asserting an Imperative MST Action."""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        obj = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
+        self.assert_belief(MST_VAR(obj_var, obj))
+
+
+
+# ---------------------- AD-CASPAR exclusive
+
+
 class show_lkb(Action):
     def execute(self):
         count = lkbm.show_LKB()
@@ -1815,4 +2075,5 @@ class assert_sequence(Action):
 class tense_debt_paid(Action):
     def execute(self):
         parser.set_pending_root_tense_debt(None)
+
 
