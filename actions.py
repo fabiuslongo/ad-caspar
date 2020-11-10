@@ -333,88 +333,43 @@ class preprocess_clause(Action):
 
         self.MAIN_NEG_PRESENT = False
 
+        deps = parser.get_last_deps()
 
-        if parser.get_flush() is False:
+        for i in range(len(deps)):
+            governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
+            dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
+            deps[i] = [deps[i][0], governor, dependent]
 
-            print("USING CACHE....................................................")
-            deps = parser.get_last_deps()
-            print("\n" + str(deps))
+        print("\n" + str(deps))
 
-            vect_LR_fol = fol_manager.get_last_fol()
-            ner = parser.get_last_ner()
-            print("\nner: ", ner)
+        MST = parser.get_last_MST()
+        print("\nMST: \n" + str(MST))
+        print("\nGMC_SUPP: \n" + str(parser.GMC_SUPP))
+        print("\nSUPP_SUPP_REV: \n" + str(parser.GMC_SUPP_REV))
+        print("\nLCD: \n" + str(parser.LCD))
 
-        else:
-
-            print("\n" + sentence)
-            deps = parser.get_deps(sentence, True)
-            parser.set_last_deps(deps)
-            ner = parser.get_last_ner()
-            rtd = parser.get_pending_root_tense_debt()
-            print("\nner: ", ner)
-
-            for i in range(len(deps)):
-                governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
-                dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
-                deps[i] = [deps[i][0], governor, dependent]
-
-            # paying the ROOT Tense Debt
-            if rtd is not None:
-                print("ROOT Tense Debt: ", rtd)
-                # getting ROOT verb
-                old_root_tense = ""
-                new_value = ""
-                for d in deps:
-                    if d[0] == "ROOT":
-                        old_root_tense = d[1]
-                        lemma_root = self.get_lemma(d[1])
-                        new_value = lemma_root+":"+rtd
-                        d[1] = new_value
-                        d[2] = new_value
-                        break
-                for d in deps:
-                    if d[0] != "ROOT":
-                        if d[1] == old_root_tense:
-                            d[1] = new_value
-                        if d[2] == old_root_tense:
-                            d[2] = new_value
-            else:
-                print("no ROOT Tense Debt")
-
-            print("\n" + str(deps))
-            parser.set_last_deps(deps)
-
-            MST = parser.create_MST(deps, 'e', 'x')
-            print("\nMST: \n" + str(MST))
-
+        # MST varlist correction on cases of adj-obj
+        if OBJ_JJ_TO_NOUN is True:
             for v in MST[1]:
-                # MST varlist correction on cases of adj-obj
                 if self.get_pos(v[1]) in ['JJ', 'JJR', 'JJS']:
                     old_value = v[1]
                     new_value = self.get_lemma(v[1]) + ":NNP"
                     v[1] = new_value
+
+                    new_value_clean = parser.get_lemma(new_value.lower())[:-2]
+                    print("\nadj-obj correction...", new_value_clean)
+
+                    # checking if the lemma has a disambiguation
+                    if new_value_clean in parser.GMC_SUPP_REV:
+                        parser.LCD[parser.GMC_SUPP_REV[new_value_clean]] = new_value_clean
+
+                    # binds correction
                     for b in MST[3]:
                         if b[0] == old_value:
                             b[0] = new_value
 
-                # MST varlist correction on cases of wrong adverb POS
-                if v[0][0] == "e" and self.get_pos(v[1]) != "RB":
-                    old_value = v[1]
-                    new_value = self.get_lemma(v[1]) + ":RB"
-                    v[1] = new_value
-                    for b in MST[3]:
-                        if b[0] == old_value:
-                            b[0] = new_value
-
-                # leveraging NER for adverbs detection
-                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD'] and v[0][0] == 'e':
-                    v[1] = self.get_lemma(v[1])+":RB"
-
-            vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
-            fol_manager.set_last_fol(vect_LR_fol)
-
-            parser.no_flush()
-            fol_manager.no_flush()
+        m = ManageFols(VERBOSE, LANGUAGE)
+        vect_LR_fol = m.build_LR_fol(MST, 'e')
 
         print("\nBefore dealing case:\n" + str(vect_LR_fol))
         if len(vect_LR_fol) == 0:
@@ -529,6 +484,7 @@ class preprocess_clause(Action):
         else:
             mods = []
             nomain_negs = []
+            main_neg_index = 0
             ent_root = self.get_ent_ROOT(deps)
             dav_act = self.get_dav_rule(dclause, ent_root)
             for v in dclause:
@@ -674,8 +630,7 @@ class preprocess_clause(Action):
             if i == 0:
                 lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[1]
             else:
-                lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[
-                    1] + "_" + lemma_nocount
+                lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[1] + "_" + lemma_nocount
         return lemma_nocount
 
     def process_fol(self, vect_fol, id, voc):
@@ -722,10 +677,8 @@ class preprocess_clause(Action):
         for v in vect_fol:
             ACTION_ASSERTED = False
             if len(v) == 4:
-
                 label = self.get_nocount_lemma(v[0])
                 pos = self.get_pos(v[0])
-
                 if INCLUDE_ACT_POS:
                     lemma = label
                 else:
@@ -801,7 +754,7 @@ class preprocess_clause(Action):
                         self.assert_belief(ADJ(str(id), v[1], lemma))
                         print("ADJ(" + str(id) + ", " + v[1] + ", " + lemma + ")")
 
-            elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS']:
+            elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS', 'RP']:
                 label = self.get_nocount_lemma(v[0])
 
                 if GEN_ADV is False or id == "LEFT":
