@@ -278,41 +278,6 @@ class lemma_in_syn(ActiveBelief):
         return False
 
 
-class join_clauses(Action):
-    def execute(self, arg1, arg2, arg3, arg4):
-
-        clause1 = str(arg1).split("'")[3]
-        clause2 = str(arg2).split("'")[3]
-        verb = str(arg3).split("'")[3]
-        common_var = str(arg4).split("'")[3]
-
-        match = SequenceMatcher(None, clause1, clause2).find_longest_match(0, len(clause1), 0, len(clause2))
-        common = clause1[match.a: match.a + match.size]
-
-        while common[0] == "(" or common[0] == ")" or common[0] == "," or common[0] == " ":
-            common = common[1:]
-
-        num_par_open = common.count("(")
-        num_par_closed = common.count(")")
-
-        while common[-1] != ")":
-            common = common[:len(common) - 1]
-
-        while num_par_open < num_par_closed:
-            common = common[:len(common) - 1]
-            num_par_open = common.count("(")
-            num_par_closed = common.count(")")
-
-        if str(clause1).find(verb) == -1:
-            new_clause = clause1.replace(common, clause2)
-        else:
-            new_clause = clause2.replace(common, clause1)
-
-        self.assert_belief(DEF_CLAUSE(new_clause))
-
-
-
-
 class preprocess_clause(Action):
 
     def execute(self, *args):
@@ -799,6 +764,7 @@ class retract_clause(Action):
 
         if def_clause in kb_fol.clauses:
             kb_fol.retract(def_clause)
+            # deleting from LKB too?
 
 
 class new_clause(Action):
@@ -808,12 +774,14 @@ class new_clause(Action):
 
         start_time = time.time()
 
-        print("\n" + clause)
+        #print("\n", sentence)
         mf = parser.morph(clause)
+        print("\n", mf)
+
         def_clause = expr(mf)
         sentence = parser.get_last_sentence()
 
-        kb_fol.nested_tell(def_clause, "")
+        kb_fol.nested_tell(def_clause, sentence)
 
         if LKB_USAGE:
             lkbm.insert_clause_db(mf, sentence)
@@ -956,20 +924,18 @@ class assert_command(Action):
 
         print(sentence)
 
-        deps = parser.get_deps(sentence, True)
+        deps = parser.get_last_deps()
+        MST = parser.get_last_MST()
 
-        TABLE = parser.create_MST(deps, 'd', 'x')
-
-        m = ManageFols(VERBOSE, LANGUAGE)
-        vect_LR_fol = m.build_LR_fol(TABLE, 'd')
+        vect_LR_fol = fol_manager.build_LR_fol(MST, 'd')
 
         # getting fol's type
         check_isa = False
-        check_implication = m.check_implication(vect_LR_fol)
+        check_implication = fol_manager.check_implication(vect_LR_fol)
         if check_implication is False:
-            check_isa = m.check_isa(vect_LR_fol, deps)
+            check_isa = fol_manager.check_isa(vect_LR_fol, deps)
 
-        gentle_LR_fol = m.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
+        gentle_LR_fol = fol_manager.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
         print(str(gentle_LR_fol))
 
         if vect_LR_fol[1][0] == "==>":
@@ -1110,7 +1076,7 @@ class append_intent_params(Action):
         prep = self.get_arg(str(args[3]))
         prep_obj = self.get_arg(str(args[4]))
 
-        if prep == "in":
+        if prep == "In":
             location = prep_obj
         else:
 
@@ -1140,7 +1106,7 @@ class append_routine_params(Action):
         location = self.get_arg(str(args[6]))
         parameters_list = self.get_arg(str(args[7]))
 
-        if prep == "in":
+        if prep == "In":
             location = prep_obj
         else:
             if len(parameters_list) == 0:
@@ -1245,13 +1211,40 @@ class simulate_sensor(Action):
         self.assert_belief(SENSOR(verb, subject, object))
 
 
-class NLP_Parser(object):
-    def __init__(self):
-        self.VERBOSE = False
-        self.parser = Parse(self.VERBOSE)
+# ---------------------- Definite Clauses Builder section
 
-    def get_parser(self):
-        return self.parser
+
+class join_clauses(Action):
+    def execute(self, arg1, arg2, arg3, arg4):
+
+        clause1 = str(arg1).split("'")[3]
+        clause2 = str(arg2).split("'")[3]
+        verb = str(arg3).split("'")[3]
+        common_var = str(arg4).split("'")[3]
+
+        match = SequenceMatcher(None, clause1, clause2).find_longest_match(0, len(clause1), 0, len(clause2))
+        common = clause1[match.a: match.a + match.size]
+
+        while common[0] == "(" or common[0] == ")" or common[0] == "," or common[0] == " ":
+            common = common[1:]
+
+        num_par_open = common.count("(")
+        num_par_closed = common.count(")")
+
+        while common[-1] != ")":
+            common = common[:len(common) - 1]
+
+        while num_par_open < num_par_closed:
+            common = common[:len(common) - 1]
+            num_par_open = common.count("(")
+            num_par_closed = common.count(")")
+
+        if str(clause1).find(verb) == -1:
+            new_clause = clause1.replace(common, clause2)
+        else:
+            new_clause = clause2.replace(common, clause1)
+
+        self.assert_belief(DEF_CLAUSE(new_clause))
 
 
 class aggregate(Action):
