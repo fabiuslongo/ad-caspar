@@ -57,14 +57,20 @@ chkb() >> [clear_hkb()]
 # initialize Lower Clauses Kb
 clkb() >> [clear_lkb()]
 
-# managing bot beliefs
+# chat bot wake word
 +message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
 +message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start]
 
-+MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), +STT(X), Timer(W).start]
+# Assertion detected
+#+MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), +STT(X), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), Timer(W).start]
+
+# Question detected
 +MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Let me think..."), -LISTEN("ON"), +REASON("ON"), +STT(X), Timer(W).start]
+# Domotic command detected
 +MSG(X) / CHAT_ID(C) >> [Reply(C, "Domotic command detected"), +STT(X), Timer(W).start]
 
+# Give back X as chatbot answer
 +OUT(X) / CHAT_ID(C) >> [Reply(C, X), Timer(W).start]
 
 
@@ -72,7 +78,10 @@ clkb() >> [clear_lkb()]
 +STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), assert_sequence(X), getcand(), qreason(), tense_debt_paid()]
 
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-CAND(X), qreason()]
-qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
+
+#qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
+qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), qreason()]
+
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES') & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-ANSWERED('YES')]
 qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
@@ -83,7 +92,7 @@ qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), q
 
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
-+STT(X) / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "NOMINAL"), process_rule()]
++PROCESS_STORED_MST("OK") / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "NOMINAL"), process_rule()]
 # processing rules --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
 process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_RULE(X), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "RULE")]
 
@@ -91,7 +100,7 @@ process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_R
 new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
 new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
-new_def_clause(X, M, T) / WAIT(W) >> [flush(), show_line("\n------------- Done.\n"), Timer(W).start]
+new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start]
 
 
 # Domotic Reasoning

@@ -264,8 +264,7 @@ def standardize_variables(sentence, dic=None):
             dic[sentence] = v
             return v
     else:
-        return Expr(sentence.op,
-                    *[standardize_variables(a, dic) for a in sentence.args])
+        return Expr(sentence.op, *[standardize_variables(a, dic) for a in sentence.args])
 
 
 standardize_variables.counter = itertools.count()
