@@ -33,9 +33,9 @@ q() >> [+STT("Colonel West is a criminal?")]
 # simulating keywords
 d() >> [show_line("\ndomotic mode on....."), set_wait(), +WAKE("ON"), -REASON("ON"), -LISTEN("ON")]
 l() >> [show_line("\nlistening mode on....."), set_wait(), +WAKE("ON"), -REASON("ON"), +LISTEN("ON")]
-r() >> [show_line("\nreasoning mode on....."), -LISTEN('ON'), +REASON("ON")]
+r() >> [show_line("\nreasoning mode on....."), set_wait(), +WAKE("ON"), -LISTEN('ON'), +REASON("ON")]
 
-t() >> [go(), l()]
+t() >> [go(), r()]
 
 # simulating sensors
 s1() >> [simulate_sensor("be", "time", "12.00")]
