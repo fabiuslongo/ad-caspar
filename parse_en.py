@@ -1685,10 +1685,11 @@ class Parse(object):
                 if d[2][0:5].lower() == "dummy":
                     d[2] = "Dummy:DM"
 
-        for i in range(len(deps)):
-            governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
-            dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
-            deps[i] = [deps[i][0], governor, dependent]
+            for i in range(len(deps)):
+                governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
+                dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
+                deps[i] = [deps[i][0], governor, dependent]
+
 
         return deps
 

@@ -1936,13 +1936,6 @@ class clear_lkb(Action):
         print(count, " clauses deleted.")
 
 
-class flush(Action):
-    def execute(self):
-        parser.flush()
-        fol_manager.flush()
-        print("\nflushing cache...")
-
-
 class check_last_char(ActiveBelief):
     def evaluate(self, x, y):
 
