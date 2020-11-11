@@ -23,6 +23,7 @@ class LP(Belief): pass
 class TIME_PREP(Belief): pass
 class CAND(Belief): pass
 class ANSWERED(Belief): pass
+class PROCESS_STORED_MST(Reactor): pass
 
 
 class join_seq(Action):

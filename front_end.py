@@ -1,8 +1,9 @@
 
 from phidias.Types import *
-from qa_shifter import *
 from actions import *
+from qa_shifter import *
 from sensors import *
+
 
 
 # SIMULATING EVENTS
@@ -16,14 +17,17 @@ from sensors import *
 # turn off the lights in the living room
 
 # definite clauses for reasoning purposes
-c1() >> [+STT("Cuba is an hostile nation")]
-c2() >> [+STT("Colonel West is American")]
-c3() >> [+STT("Missiles are weapons")]
-c4() >> [+STT("Colonel West sells missiles to Cuba")]
-c5() >> [+STT("When an American sells weapons to a hostile nation, that American is a criminal")]
+c1() >> [+TEST("Cuba is an hostile nation")]
+c2() >> [+TEST("Colonel West is American")]
+c3() >> [+TEST("Missiles are weapons")]
+c4() >> [+TEST("Colonel West sells missiles to Cuba")]
+c5() >> [+TEST("When an American sells weapons to a hostile nation, that American is a criminal")]
 
 # Query
 q() >> [+STT("Colonel West is a criminal?")]
+
++TEST(X) >> [parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK")]
+
 
 
 # simulating keywords
@@ -31,7 +35,7 @@ d() >> [show_line("\ndomotic mode on....."), set_wait(), +WAKE("ON"), -REASON("O
 l() >> [show_line("\nlistening mode on....."), set_wait(), +WAKE("ON"), -REASON("ON"), +LISTEN("ON")]
 r() >> [show_line("\nreasoning mode on....."), -LISTEN('ON'), +REASON("ON")]
 
-t() >> [show_line("\nreasoning mode on....."), set_wait(), +WAKE("ON"), -LISTEN('ON'), +REASON("ON")]
+t() >> [go(), l()]
 
 # simulating sensors
 s1() >> [simulate_sensor("be", "time", "12.00")]
@@ -80,7 +84,7 @@ clkb() >> [clear_lkb()]
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-CAND(X), qreason()]
 
 #qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), new_def_clause(X, "ONE", "NOMINAL"), qreason()]
-qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [-CAND(X), +GEN_MASK("FULL"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), qreason()]
+qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [show_line("\nProcessing candidate....", X), -CAND(X), +GEN_MASK("FULL"), parse_rules(X), parse_deps(), feed_mst(), new_def_clause("ONE", "NOMINAL"), qreason()]
 
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES') & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-ANSWERED('YES')]
@@ -89,22 +93,20 @@ qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), q
 
 
 
-
-
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
-+PROCESS_STORED_MST("OK") / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "NOMINAL"), process_rule()]
++PROCESS_STORED_MST("OK") / (WAKE("ON") & LISTEN("ON")) >> [show_line("\nGot it.\n"), +GEN_MASK("BASE"), new_def_clause("MORE", "NOMINAL"), process_rule()]
 # processing rules --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"
-process_rule() / IS_RULE(X) >> [show_line("\n", X, " ----> is a rule!\n"), -IS_RULE(X), +GEN_MASK("BASE"), new_def_clause(X, "MORE", "RULE")]
+process_rule() / IS_RULE("TRUE") >> [show_line("\n------> rule detected!!\n"), -IS_RULE("TRUE"), +GEN_MASK("BASE"), new_def_clause("MORE", "RULE")]
 
 # Generalization assertion
-new_def_clause(X, M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause(X, "BASE", M, T), parse(), process_clause(), new_def_clause(X, M, T)]
-new_def_clause(X, M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(X, Y, M, T), parse(), process_clause(), new_def_clause(X, M, T)]
-new_def_clause(X, M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), flush(), Timer(W).start]
-new_def_clause(X, M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start]
+new_def_clause(M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause("BASE", M, T), parse(), process_clause(), new_def_clause(M, T)]
+new_def_clause(M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(Y, M, T), parse(), process_clause(), new_def_clause(M, T)]
+new_def_clause(M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), Timer(W).start]
+new_def_clause(M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start]
 
 
 # Domotic Reasoning
-+STT(X) / WAKE("ON") >> [show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine()]
++PROCESS_STORED_MST("OK") / WAKE("ON") >> [show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine()]
 
 +TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & REASON("ON") & CHAT_ID(C)) >> [show_line("Returning to sleep..."), Reply(C, "Returning to sleep..."), -WAKE("ON"), -LISTEN("ON"), -REASON("ON")]
 +TIMEOUT("ON") / (WAKE("ON") & REASON("ON") & CHAT_ID(C)) >> [show_line("Returning to sleep..."), Reply(C, "Returning to sleep..."), -REASON("ON"), -WAKE("ON")]

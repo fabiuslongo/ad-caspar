@@ -132,6 +132,8 @@ class RETRACT(Belief): pass
 class IS_RULE(Belief): pass
 class WAIT(Belief): pass
 
+class TEST(Reactor): pass
+
 # domotic reactive routines
 class r1(Procedure): pass
 class r2(Procedure): pass
@@ -218,7 +220,7 @@ class MST_COMP(Belief): pass
 class MST_COND(Belief): pass
 class parse_deps(Procedure): pass
 class feed_mst(Procedure): pass
-class PROCESS_STORED_MST(Reactor): pass
+
 
 
 # Question Answering beliefs
@@ -282,10 +284,9 @@ class lemma_in_syn(ActiveBelief):
 class preprocess_clause(Action):
 
     def execute(self, *args):
-        sentence = args[0]()
-        gen_mask = str(args[1]())
-        mode = str(args[2]())
-        type = str(args[3]())
+        gen_mask = str(args[0]())
+        mode = str(args[1]())
+        type = str(args[2]())
 
         print("\n--------- NEW DEFINITE CLAUSE ---------\n ")
         print("gen_mask: " + gen_mask)
@@ -349,7 +350,7 @@ class preprocess_clause(Action):
                 if ASSIGN_RULES_ADMITTED:
                     check_isa = fol_manager.check_for_rule(deps, vect_LR_fol)
                     if check_isa:
-                        self.assert_belief(IS_RULE(sentence))
+                        self.assert_belief(IS_RULE("TRUE"))
                 dclause = vect_LR_fol[:]
             else:
                 dclause = vect_LR_fol[:]
@@ -1565,7 +1566,7 @@ class no_dav(ActiveBelief):
 
         var = str(x).split("'")[3]
         # Check for davidsonian
-        if var[0] == 'e':
+        if var[0] == 'e' or var[0] == 'd':
             return False
         else:
             return True
