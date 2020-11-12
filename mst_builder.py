@@ -86,9 +86,11 @@ parse_deps() / (MST_ACT(V, D, S, O) & DEP("csubj", U, V)) >> [show_line("\nproce
 
 # clausal complements
 parse_deps() / (MST_ACT(X, D, Y, Z) & MST_ACT(T, E, W, K) & DEP("ccomp", X, T)) >> [show_line("\nprocessing ccomp..."), -DEP("ccomp", X, T), -MST_ACT(X, D, Y, Z), +MST_ACT(X, D, Y, E), parse_deps()]
+parse_deps() / (MST_ACT(V, E, W, K) & MST_VAR(K, Y) & DEP("ccomp", X, T)) >> [show_line("\nprocessing ccomp combined..."), -DEP("ccomp", X, T), create_MST_ACT_SUBJ(T, K), parse_deps()]
 parse_deps() / (DEP("ccomp", X, Y)) >> [show_line("\nprocessing ccomp as nsubj..."), -DEP("ccomp", X, Y), create_MST_ACT(X, Y), parse_deps()]
 
 # relative clause modifiers
+parse_deps() / (MST_ACT(T, D, U, X) & MST_VAR(X, K) & MST_ACT(V, E, S, O) & MST_ACT(W, J, O, M) & DEP("relcl", K, V)) >> [show_line("\nprocessing relcl connecting 3 actions objects..."), -DEP("relcl", K, V), -MST_ACT(V, E, S, O), +MST_ACT(V, E, S, X), -MST_ACT(W, J, O, M), +MST_ACT(W, J, X, M), parse_deps()]
 parse_deps() / (MST_ACT(X, D, Y, Z) & MST_VAR(W, K) & DEP("relcl", K, X) & Past_Part(X)) >> [show_line("\nprocessing relcl pp..."), -DEP("relcl", K, X), -MST_ACT(X, D, Y, Z), +MST_ACT(X, D, Y, W), parse_deps()]
 parse_deps() / (MST_ACT(X, D, Y, Z) & MST_VAR(W, K) & MST_VAR(Z, U) & DEP("relcl", K, X) & Wh_Det(U)) >> [show_line("\nprocessing relcl wh..."), -DEP("relcl", K, X), -MST_ACT(X, D, Y, Z), +MST_ACT(X, D, Y, W), parse_deps()]
 parse_deps() / (MST_ACT(X, D, Y, Z) & MST_VAR(W, K) & DEP("relcl", K, X)) >> [show_line("\nprocessing relcl..."), -DEP("relcl", K, X), -MST_ACT(X, D, Y, Z), +MST_ACT(X, D, W, Z), parse_deps()]

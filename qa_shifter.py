@@ -123,7 +123,7 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A)) >> [show_li
 # what qualities do you think are important in a friend?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what")) >> [show_line("\nWHAT -aux all not null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
 
-# --- WHERE ---
+# --- WHERE --- see LOC_PREPS in config.ini into [QA]
 # where is the newspaper?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & LOC_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHERE short..."), -LOC_PREP(Z), join_seq(O, V, K, Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES") & null(X, A, Y)) >> [show_line("\nWHERE short end..."), -LP("YES"), -SEQ(X, A, Y, V, O, K), getcand()]
@@ -137,7 +137,7 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & LP("YES")) >> [show_line("\
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where") & aux_included(A)) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, A, V, O, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("where")) >> [show_line("\nWHERE..."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, K, O, "Dummy"), getcand()]
 
-# --- WHEN ---
+# --- WHEN --- see TIME_PREPS in config.ini into [QA]
 # When is the Thanksgiving?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & TIME_PREP(Z) & null(X, A, Y)) >> [show_line("\nWHEN short..."), -TIME_PREP(Z), join_seq(O, V, K, "---", Z, "Dummy"), getcand()]
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("when") & null(X, A, Y)) >> [show_line("\nWHEN short end..."), -SEQ(X, A, Y, V, O, K), getcand()]
