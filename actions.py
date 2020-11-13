@@ -830,6 +830,7 @@ class reason(Action):
 
         elif bc_result is False and NESTED_REASONING:
 
+            self.assert_belief(OUT("From HKB (Nominal): False"))
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
 
