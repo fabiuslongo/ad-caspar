@@ -15,8 +15,6 @@ from lkb_manager import *
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-cnt = itertools.count(1)
-dav = itertools.count(1)
 
 
 VERBOSE = config.getboolean('NL_TO_FOL', 'VERBOSE')
@@ -1069,8 +1067,6 @@ class join_routine_grounds(Action):
         return s[3]
 
 
-
-
 class append_intent_params(Action):
     """Append intent params considering a prepositions list"""
     def execute(self, *args):
@@ -1686,7 +1682,18 @@ class show_fol_kb(Action):
         print("\n" + str(len(kb_fol.clauses)) + " clauses in High Clauses KB")
 
 
+
+
+
 # ---------------------- MST Builder Section
+
+
+class Reset_var_cnt(Action):
+    """Reset itrator counters"""
+    def execute(self):
+        parser.Iterator_init()
+
+
 
 class parse_rules(Action):
     """Asserting dependencies related beliefs."""
@@ -1711,9 +1718,9 @@ class create_MST_ACT(Action):
         verb = str(arg1).split("'")[3]
         subj = str(arg2).split("'")[3]
 
-        davidsonian = "e"+str(next(dav))
-        subj_var = "x"+str(next(cnt))
-        obj_var = "x"+str(next(cnt))
+        davidsonian = "e"+str(parser.Iterator_next_dav())
+        subj_var = "x"+str(parser.Iterator_next_var())
+        obj_var = "x"+str(parser.Iterator_next_var())
 
         self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
         self.assert_belief(MST_VAR(subj_var, subj))
@@ -1726,9 +1733,9 @@ class create_MST_ACT_PASS(Action):
         verb = str(arg1).split("'")[3]
         subj = str(arg2).split("'")[3]
 
-        davidsonian = "e" + str(next(dav))
-        subj_var = "x"+str(next(cnt))
-        obj_var = "x"+str(next(cnt))
+        davidsonian = "e" + str(parser.Iterator_next_dav())
+        subj_var = "x"+str(parser.Iterator_next_var())
+        obj_var = "x"+str(parser.Iterator_next_var())
 
         self.assert_belief(MST_ACT(verb, davidsonian, obj_var, subj_var))
         self.assert_belief(MST_VAR(subj_var, subj))
@@ -1741,7 +1748,7 @@ class create_MST_PREP(Action):
         dav = str(arg1).split("'")[3]
         prep = str(arg2).split("'")[3]
 
-        obj_var = "x"+str(next(cnt))
+        obj_var = "x"+str(parser.Iterator_next_var())
 
         self.assert_belief(MST_PREP(prep, dav, obj_var))
         self.assert_belief(MST_VAR(obj_var, "?"))
@@ -1907,8 +1914,8 @@ class create_MST_ACT_SUBJ(Action):
         verb = str(arg1).split("'")[3]
         subj_var = str(arg2).split("'")[3]
 
-        davidsonian = "e"+str(next(dav))
-        obj_var = "x"+str(next(cnt))
+        davidsonian = "e"+str(parser.Iterator_next_dav())
+        obj_var = "x"+str(parser.Iterator_next_var())
 
         self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
         self.assert_belief(MST_VAR(obj_var, "?"))
@@ -1920,8 +1927,8 @@ class create_MST_ACT_EX(Action):
 
         verb = str(arg1).split("'")[3]
 
-        davidsonian = "e"+str(next(dav))
-        obj_var = "x" + str(next(cnt))
+        davidsonian = "e"+str(parser.Iterator_next_dav())
+        obj_var = "x" + str(parser.Iterator_next_var())
 
         self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
         self.assert_belief(MST_VAR(obj_var, "?"))
@@ -1934,8 +1941,8 @@ class create_IMP_MST_ACT(Action):
         verb = str(arg1).split("'")[3]
         obj = str(arg2).split("'")[3]
 
-        davidsonian = "e"+str(next(dav))
-        obj_var = "x"+str(next(cnt))
+        davidsonian = "e"+str(parser.Iterator_next_dav())
+        obj_var = "x"+str(parser.Iterator_next_var())
 
         self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
         self.assert_belief(MST_VAR(obj_var, obj))

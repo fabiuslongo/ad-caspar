@@ -46,18 +46,16 @@ class ManageLKB(object):
         features = self.extract_features(cls)
         print("\nfeatures:", features)
 
-        try:
+        clause = {
+            "value": cls,
+            "features": features,
+            "sentence": sentence
+            }
 
-            clause = {
-                "value": cls,
-                "features": features,
-                "sentence": sentence
-                }
-            sentence_id = clauses.insert_one(clause).inserted_id
-            print("sentence_id: " + str(sentence_id))
+        result = clauses.update(clause, clause, upsert=True)
+        print("Result: ", result)
 
-        except pymongo.errors.DuplicateKeyError:
-             print("\nClause already present in Lower KB!")
+
 
 
 
