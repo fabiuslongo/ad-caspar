@@ -250,6 +250,8 @@ def subst(s, x):
         return Expr(x.op, *[subst(s, arg) for arg in x.args])
 
 
+
+
 def standardize_variables(sentence, dic=None):
     """Replace all the variables in sentence with new variables."""
     if dic is None:
@@ -321,16 +323,18 @@ class FolKB(KB):
 def nested_tell_inner(KB, clause, sentence):
     """ Assert a clause and, when lhs(clause) is not null, also a set of implications where lhs is clause
         and rhs a derived clause producted by produce_clauses accordingly to a specific knowledge base."""
-    if str(clause).find("==>") == -1:
-        derived = []
-        KB.produce_clauses(clause, derived)
-        for derived_clause in derived:
-            if unify(clause, derived_clause) is None:
-                new_clause = str(clause) + " ==> " + str(derived_clause)
-                KB.tell(expr(new_clause))
-                if LKB_USAGE:
-                    lkbm.insert_clause_db(new_clause, sentence)
-    KB.tell(clause)
+    if clause not in KB.clauses:
+        KB.tell(clause)
+        if str(clause).find("==>") == -1:
+            derived = []
+            KB.produce_clauses(clause, derived)
+            for derived_clause in derived:
+                if unify(clause, derived_clause) is None:
+                    new_clause = str(clause) + " ==> " + str(derived_clause)
+                    KB.tell(expr(new_clause))
+                    if LKB_USAGE:
+                        lkbm.insert_clause_db(new_clause, sentence)
+
 
 
 

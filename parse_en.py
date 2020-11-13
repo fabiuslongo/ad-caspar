@@ -4,6 +4,7 @@ import os
 from collections import Counter
 from nltk.corpus import wordnet
 import configparser
+import itertools
 
 
 config = configparser.ConfigParser()
@@ -20,6 +21,10 @@ GMC_ACTIVE = config.getboolean('GROUNDED_MEANING_CONTEXT', 'GMC_ACTIVE')
 GMC_POS = config.get('GROUNDED_MEANING_CONTEXT', 'GMC_POS').split(", ")
 
 OBJ_JJ_TO_NOUN = config.getboolean('POS', 'OBJ_JJ_TO_NOUN')
+
+
+
+
 
 
 
@@ -83,6 +88,23 @@ class Parse(object):
         # Lemmas correction dictionary
         self.LCD = {}
 
+        self.cnt = itertools.count(1)
+        self.dav = itertools.count(1)
+
+
+
+
+    def Iterator_init(self):
+        self.cnt = itertools.count(1)
+        self.dav = itertools.count(1)
+
+
+    def Iterator_next_dav(self):
+        return(next(self.dav))
+
+
+    def Iterator_next_var(self):
+        return(next(self.cnt))
 
 
     def feed_MST(self, component, index):
