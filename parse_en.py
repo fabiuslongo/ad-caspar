@@ -5,6 +5,7 @@ from collections import Counter
 from nltk.corpus import wordnet
 import configparser
 import itertools
+import time
 
 
 config = configparser.ConfigParser()
@@ -91,7 +92,19 @@ class Parse(object):
         self.cnt = itertools.count(1)
         self.dav = itertools.count(1)
 
+        # Beginning Computational time
+        self.start_time = 0
 
+
+
+    def set_start_time(self):
+        self.start_time = time.time()
+
+
+    def get_comp_time(self):
+        end_time = time.time()
+        assert_time = end_time - self.start_time
+        return assert_time
 
 
     def Iterator_init(self):

@@ -234,6 +234,12 @@ class RELATED(Belief): pass
 
 
 
+class reset_ct(Action):
+    """Reset computational time"""
+    def execute(self):
+        parser.set_start_time()
+
+
 class set_wait(Action):
     """Set duration of the session from WAIT_TIME in config.ini [AGENT]"""
     def execute(self):
@@ -778,8 +784,6 @@ class new_clause(Action):
     def execute(self, *args):
         clause = args[0]()
 
-        start_time = time.time()
-
         #print("\n", sentence)
         mf = parser.morph(clause)
         print("\n", mf)
@@ -792,9 +796,8 @@ class new_clause(Action):
         if LKB_USAGE:
             lkbm.insert_clause_db(mf, sentence)
 
-        end_time = time.time()
-        assert_time = end_time - start_time
-        print("\nAssert time: ", assert_time)
+        comp_time = parser.get_comp_time()
+        print("\nAssert time: ", comp_time)
 
 
 class reason(Action):
@@ -803,7 +806,6 @@ class reason(Action):
 
     def execute(self, *args):
         definite_clause = args[0]()
-        start_time = time.time()
 
         q = parser.morph(definite_clause)
         print("Query: " + q)
@@ -813,9 +815,8 @@ class reason(Action):
         print("\n ---- Backward-Chaining REASONING ---\n")
         print("Result: " + str(bc_result))
 
-        end_time1 = time.time()
-        query_time1 = end_time1 - start_time
-        print("Backward-Chaining Query time: ", query_time1)
+        comp_time = parser.get_comp_time()
+        print("Backward-Chaining Query time: ", comp_time)
 
         candidates = []
         nested_result = False
@@ -859,7 +860,10 @@ class reason(Action):
                 kb_fol.tell(expr(a))
 
             bc_result = kb_fol.ask(expr(q))
+
+            comp_time = parser.get_comp_time()
             print("\nResult: ", bc_result)
+            print("Query time: ", comp_time)
 
             candidates = []
 
@@ -911,9 +915,8 @@ class reason(Action):
             if EMPTY_HKB_AFTER_REASONING:
                 kb_fol.clauses = []
 
-        end_time2 = time.time()
-        query_time2 = end_time2 - start_time
-        print("\nQuery time: ", query_time2)
+        comp_time = parser.get_comp_time()
+        print("\nQuery time: ", comp_time)
 
 
 class assert_command(Action):

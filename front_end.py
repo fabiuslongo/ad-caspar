@@ -26,7 +26,7 @@ c5() >> [+TEST("When an American sells weapons to a hostile nation, that America
 # Query
 q() >> [+STT("Colonel West is a criminal?")]
 
-+TEST(X) >> [parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK")]
++TEST(X) >> [reset_ct(), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK")]
 
 
 
@@ -66,7 +66,7 @@ clkb() >> [clear_lkb()]
 +message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start]
 
 # Assertion detected
-+MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), reset_ct(), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), Timer(W).start]
 
 # Question detected
 +MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Let me think..."), -LISTEN("ON"), +REASON("ON"), +STT(X), Timer(W).start]
@@ -78,7 +78,7 @@ clkb() >> [clear_lkb()]
 
 
 # Reasoning
-+STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), assert_sequence(X), getcand(), qreason(), tense_debt_paid()]
++STT(X) / (WAKE("ON") & REASON("ON")) >> [show_line("\nTurning question into fact shapes....\n"), reset_ct(), assert_sequence(X), getcand(), qreason(), tense_debt_paid()]
 
 qreason() / (CAND(X) & WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-CAND(X), qreason()]
 
