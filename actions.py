@@ -6,7 +6,6 @@ from logic.logic import *
 from phidias.Types import *
 import configparser
 import math
-import time
 import datetime
 from difflib import SequenceMatcher
 
@@ -232,6 +231,13 @@ class TIME_PREP(Belief): pass
 class ROOT(Belief): pass
 class RELATED(Belief): pass
 
+
+
+class show_time(Action):
+    """Show execution time"""
+    def execute(self):
+        comp_time = parser.get_comp_time()
+        print("\nExecution time: ", comp_time)
 
 
 class reset_ct(Action):
@@ -807,6 +813,8 @@ class reason(Action):
     def execute(self, *args):
         definite_clause = args[0]()
 
+        self.assert_belief(OUT("--- Processing candidate..."))
+
         q = parser.morph(definite_clause)
         print("Query: " + q)
         print("OCCUR_CHECK: ", exec_occur_check)
@@ -873,6 +881,7 @@ class reason(Action):
                 self.assert_belief(ANSWERED("YES"))
 
             elif bc_result is False and NESTED_REASONING:
+                self.assert_belief(OUT("From LKB (Nominal): False"))
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
 
@@ -935,8 +944,6 @@ class assert_command(Action):
         for s in SWAP_STR:
             sentence = sentence.lower().replace(s[0], s[1])
 
-        print(sentence)
-
         deps = parser.get_last_deps()
         MST = parser.get_last_MST()
 
@@ -949,7 +956,7 @@ class assert_command(Action):
             check_isa = fol_manager.check_isa(vect_LR_fol, deps)
 
         gentle_LR_fol = fol_manager.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
-        print(str(gentle_LR_fol))
+        print("\n", gentle_LR_fol)
 
         if vect_LR_fol[1][0] == "==>":
 
@@ -1195,15 +1202,23 @@ class exec_cmd(Action):
             parameters = parameters.replace(s[1], s[0])
 
         print("\n---- Result: execution successful")
+        self.assert_belief(OUT("---- Result: execution successful"))
         print("\nAction: " + command)
+        self.assert_belief(OUT("Action: " + command))
         print("Object: " + object)
+        self.assert_belief(OUT("Object: " + object))
 
         if len(location) > 0:
             print("Location: " + location)
+            self.assert_belief(OUT("Location: " + location))
 
         if len(parameters) > 0:
             print("Parameters: " + parameters)
+            self.assert_belief(OUT("Parameters: " + parameters))
         print("\n")
+
+        comp_time = parser.get_comp_time()
+        print("\nExecution time: ", comp_time)
 
     def get_arg(self, arg):
         s = arg.split("'")
@@ -1700,13 +1715,18 @@ class Reset_var_cnt(Action):
 
 class parse_rules(Action):
     """Asserting dependencies related beliefs."""
-    def execute(self, arg):
+    def execute(self, arg, dis):
 
         parser.flush()
 
         sent = str(arg).split("'")[3]
+        if str(dis).split("'")[1] == "DISOK":
+            DISOK = True
+        else:
+            DISOK = False
+
         print("\n", sent)
-        deps = parser.get_deps(sent, True)
+        deps = parser.get_deps(sent, True, DISOK)
         print("\n", deps)
         parser.set_last_deps(deps)
 
@@ -1995,10 +2015,15 @@ class check_last_char(ActiveBelief):
 
 class assert_sequence(Action):
     """Asserting question's chunks to feed the QA-Shifter"""
-    def execute(self, arg1):
+    def execute(self, arg1, arg2):
         sentence = str(arg1).split("'")[3]
 
-        deps = parser.get_deps(sentence, False)
+        if str(arg2).split("'")[1] == "DISOK":
+            DISOK = True
+        else:
+            DISOK = False
+
+        deps = parser.get_deps(sentence, False, DISOK)
         print(deps)
 
         first_word = parser.get_lemma(deps[0][2]).lower()[:-2]

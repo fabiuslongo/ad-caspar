@@ -5,7 +5,7 @@ from actions import *
 
 # ROUTINES PARSER
 
-parse_routine() >> [aggr_ent_conds(), produce_mod_conds(), produce_conds(), aggr_ent_rt(), produce_mod_rt(), produce_routine()]
+parse_routine() >> [aggr_ent_conds(), produce_mod_conds(), produce_conds(), aggr_ent_rt(), produce_mod_rt(), produce_routine(), show_time()]
 
 # --------- conditional section ---------
 
