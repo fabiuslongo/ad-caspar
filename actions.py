@@ -837,17 +837,17 @@ class reason(Action):
 
         elif bc_result is False and NESTED_REASONING:
 
-            self.assert_belief(OUT("From HKB (Nominal): False"))
+            self.assert_belief(OUT("from HKB (Nominal): False"))
             print("\n\n ---- NESTED REASONING ---")
             nested_result = kb_fol.nested_ask(expr(q), candidates)
 
             if nested_result is False:
                 print("\nResult: ", nested_result)
-                self.assert_belief(OUT("From HKB (Nested): False"))
+                self.assert_belief(OUT("from HKB (Nested): False"))
 
             else:
                 print("\nResult: ", nested_result)
-                self.assert_belief(OUT("From HKB (Nested): True"))
+                self.assert_belief(OUT("from HKB (Nested): True"))
                 self.assert_belief(OUT(str(nested_result)))
                 self.assert_belief(ANSWERED("YES"))
 
@@ -876,26 +876,26 @@ class reason(Action):
             candidates = []
 
             if bc_result is not False:
-                self.assert_belief(OUT("From LKB (Nominal): True"))
+                self.assert_belief(OUT("from LKB (Nominal): True"))
                 self.assert_belief(OUT(str(bc_result)))
                 self.assert_belief(ANSWERED("YES"))
 
             elif bc_result is False and NESTED_REASONING:
-                self.assert_belief(OUT("From LKB (Nominal): False"))
+                self.assert_belief(OUT("from LKB (Nominal): False"))
                 print("\n\n ---- NESTED REASONING from Lower KB ---")
                 nested_result = kb_fol.nested_ask(expr(q), candidates)
 
                 if nested_result is False:
                     print("\nResult: ", nested_result)
-                    self.assert_belief(OUT("From LKB (Nested): False"))
+                    self.assert_belief(OUT("from LKB (Nested): False"))
 
                 else:
                     print("\nResult: ", nested_result)
-                    self.assert_belief(OUT("From LKB (Nested): True"))
+                    self.assert_belief(OUT("from LKB (Nested): True"))
                     self.assert_belief(OUT(str(nested_result)))
                     self.assert_belief(ANSWERED("YES"))
             else:
-                self.assert_belief(OUT("From LKB (Nominal): False"))
+                self.assert_belief(OUT("from LKB (Nominal): False"))
 
 
             reason_keys = lkbm.get_last_keys()
