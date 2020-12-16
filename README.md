@@ -189,7 +189,7 @@ Optionally, with the value of SHOW_REL set to _true_, the closest results can be
 
 ### Nested Reasoning
 
-In order to test the _Nested Reasoning_ inherited from [CASPAR](https://github.com/fabiuslongo/pycaspar) by using the Telegram bot, you must be sure some parameters in config.ini are as it follows:
+In order to test the _Nested Reasoning_ inherited from [CASPAR](https://github.com/fabiuslongo/pycaspar) by using the Telegram bot, you must be sure some parameters in config.ini are set as it follows:
 
 ---------------
 
