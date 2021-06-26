@@ -48,7 +48,7 @@ s2() >> [simulate_sensor("be", "temperature", "25")]
 # Front-End STT
 
 # Start agent command
-go() >> [show_line("AD-Caspar started! Bot is running..."), Chatbot().start, set_wait()]
+go() >> [show_line("AD-Caspar started! Bot is running..."), Chatbot().start(), set_wait()]
 
 
 # show higher Clauses kb
@@ -62,19 +62,19 @@ chkb() >> [clear_hkb()]
 clkb() >> [clear_lkb()]
 
 # chat bot wake word
-+message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start]
-+message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start]
++message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start()]
++message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), Timer(W).start()]
 
 # Assertion detected
-+MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), +PROCESS_STORED_MST("OK"), Timer(W).start()]
 
 # Question detected
-+MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Let me think..."), -LISTEN("ON"), +REASON("ON"), +STT(X), Timer(W).start]
++MSG(X) / (CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Let me think..."), -LISTEN("ON"), +REASON("ON"), +STT(X), Timer(W).start()]
 # Domotic command detected
-+MSG(X) / CHAT_ID(C) >> [Reply(C, "Domotic command detected"), +STT(X), Timer(W).start]
++MSG(X) / CHAT_ID(C) >> [Reply(C, "Domotic command detected"), +STT(X), Timer(W).start()]
 
 # Give back X as chatbot answer
-+OUT(X) / CHAT_ID(C) >> [Reply(C, X), Timer(W).start]
++OUT(X) / CHAT_ID(C) >> [Reply(C, X), Timer(W).start()]
 
 
 # Reasoning
@@ -99,8 +99,8 @@ process_rule() / IS_RULE("TRUE") >> [show_line("\n------> rule detected!!\n"), -
 # Generalization assertion
 new_def_clause(M, T) / GEN_MASK("BASE") >> [-GEN_MASK("BASE"), preprocess_clause("BASE", M, T), parse(), process_clause(), new_def_clause(M, T)]
 new_def_clause(M, T) / GEN_MASK(Y) >> [-GEN_MASK(Y), preprocess_clause(Y, M, T), parse(), process_clause(), new_def_clause(M, T)]
-new_def_clause(M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), Timer(W).start]
-new_def_clause(M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start]
+new_def_clause(M, T) / (WAIT(W) & CHAT_ID(C)) >> [show_line("\n------------- Done.\n"), Timer(W).start()]
+new_def_clause(M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W).start()]
 
 
 # Domotic Reasoning
