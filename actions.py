@@ -7,7 +7,7 @@ from phidias.Types import *
 import configparser
 import math
 import time
-import datetime
+from datetime import datetime
 from difflib import SequenceMatcher
 
 from lkb_manager import *
@@ -24,6 +24,9 @@ LANGUAGE = config.get('NL_TO_FOL', 'LANGUAGE')
 ASSIGN_RULES_ADMITTED = config.getboolean('NL_TO_FOL', 'ASSIGN_RULES_ADMITTED')
 
 WAIT_TIME = config.getint('AGENT', 'WAIT_TIME')
+LOG_ACTIVE = config.getboolean('AGENT', 'LOG_ACTIVE')
+FILE_KB_NAME = config.get('AGENT', 'FILE_KB_NAME')
+
 INCLUDE_ACT_POS = config.getboolean('POS', 'INCLUDE_ACT_POS')
 INCLUDE_NOUNS_POS = config.getboolean('POS', 'INCLUDE_NOUNS_POS')
 INCLUDE_ADJ_POS = config.getboolean('POS', 'INCLUDE_ADJ_POS')
@@ -107,24 +110,22 @@ class check_conds(Procedure): pass
 class go(Procedure): pass
 
 # STT Front-End procedures
-class d(Procedure): pass
-class w(Procedure): pass
-class l(Procedure): pass
-class r(Procedure): pass
 class hkb(Procedure): pass
 class lkb(Procedure): pass
 class flush(Procedure): pass
+class manage_msg(Procedure): pass
 
 # initialize Clauses Kbs
 class chkb(Procedure): pass
 class clkb(Procedure): pass
 
-# test assertions
-class t(Procedure): pass
+# auto feed procedure from file
+class feed(Procedure): pass
+class make_feed(Procedure): pass
 
 # mode reactors
 class HOTWORD_DETECTED(Reactor): pass
-class STT(Reactor): pass
+class STT(Belief): pass
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
 class REASON(Belief): pass
@@ -132,7 +133,7 @@ class RETRACT(Belief): pass
 class IS_RULE(Belief): pass
 class WAIT(Belief): pass
 
-class TEST(Reactor): pass
+class TEST(Belief): pass
 
 # domotic reactive routines
 class r1(Procedure): pass
@@ -145,17 +146,6 @@ class d2(Procedure): pass
 # domotic sensor simulatons
 class s1(Procedure): pass
 class s2(Procedure): pass
-
-# Fol reasoning utterances
-class c1(Procedure): pass
-class c2(Procedure): pass
-class c3(Procedure): pass
-class c4(Procedure): pass
-class c5(Procedure): pass
-class c6(Procedure): pass
-
-# Fol query utterance
-class q(Procedure): pass
 
 # normal requests beliefs
 class GROUND(Belief): pass
@@ -182,7 +172,7 @@ class START_ROUTINE(Reactor): pass
 
 # Chatbot beliefs
 class OUT(Reactor): pass
-class MSG(Reactor): pass
+class MSG(Belief): pass
 class CHAT_ID(Belief): pass
 
 # clause
@@ -236,9 +226,53 @@ class RELATED(Belief): pass
 
 
 
+class feed_kbs(Action):
+    """Feed Knowledge Bases from file"""
+    def execute(self):
+        try:
+            with open(FILE_KB_NAME) as f:
+                for line in f:
+                    print(line)
+                    self.assert_belief(TEST(line.rstrip()))
+        except IOError:
+            print("\nFile " + FILE_KB_NAME + " not found.")
+
+
+class reset_ct(Action):
+    """Reset execution time"""
+    def execute(self):
+        parser.set_start_time()
+
+
+class log_cmd(Action):
+    """log direct assertions from keyboard"""
+
+    def execute(self, *args):
+        a = str(args).split("'")
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n" + a[1] + ": " + a[5])
+
+
+class show_ct(Action):
+    """Show execution time"""
+    def execute(self):
+        ct = parser.get_comp_time()
+        print("\nExecution time: ", ct)
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\nExecution time: " + str(ct))
+
+
 class set_wait(Action):
+    """Set duration of the session from WAIT_TIME in config.ini [AGENT]"""
     def execute(self):
         self.assert_belief(WAIT(WAIT_TIME))
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n------ NEW SESSION ------ " + str(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
 
 
 class eval_cls(ActiveBelief):
@@ -788,10 +822,6 @@ class new_clause(Action):
         if LKB_USAGE:
             lkbm.insert_clause_db(mf, sentence)
 
-        end_time = time.time()
-        assert_time = end_time - start_time
-        print("\nAssert time: ", assert_time)
-
 
 class reason(Action):
 
@@ -903,10 +933,6 @@ class reason(Action):
             # emptying Higher KB
             if EMPTY_HKB_AFTER_REASONING:
                 kb_fol.clauses = []
-
-        end_time2 = time.time()
-        query_time2 = end_time2 - start_time
-        print("\nQuery time: ", query_time2)
 
 
 class assert_command(Action):

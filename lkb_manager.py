@@ -108,12 +108,11 @@ class ManageLKB(object):
                 "value": 1, "_id": 1,
                 "intersection": {"$size": {"$setIntersection": ["$features", features]}}
             }},
-            {"$group":
-                 {"_id": "$intersection",
-                  "group1": {"$push": "$value"}, "group2": {"$push": "$_id"}}},
+            {"$group": {"_id": "$intersection", "group1": {"$push": "$value"}, "group2": {"$push": "$_id"}}},
             {"$sort": {"_id": -1}},
             {"$limit": 2}
         ])
+
 
         for a in aggr:
             occurrencies = a['_id']
