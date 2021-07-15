@@ -264,8 +264,7 @@ def standardize_variables(sentence, dic=None):
             dic[sentence] = v
             return v
     else:
-        return Expr(sentence.op,
-                    *[standardize_variables(a, dic) for a in sentence.args])
+        return Expr(sentence.op, *[standardize_variables(a, dic) for a in sentence.args])
 
 
 standardize_variables.counter = itertools.count()
@@ -315,11 +314,11 @@ class FolKB(KB):
         return nested_ask_inner(self, goal, candidates)
 
 
-    def nested_tell(self, clause, ner):
-        return nested_tell_inner(self, clause, ner)
+    def nested_tell(self, clause, sentence):
+        return nested_tell_inner(self, clause, sentence)
 
 
-def nested_tell_inner(KB, clause, ner):
+def nested_tell_inner(KB, clause, sentence):
     """ Assert a clause and, when lhs(clause) is not null, also a set of implications where lhs is clause
         and rhs a derived clause producted by produce_clauses accordingly to a specific knowledge base."""
     if str(clause).find("==>") == -1:
@@ -330,8 +329,9 @@ def nested_tell_inner(KB, clause, ner):
                 new_clause = str(clause) + " ==> " + str(derived_clause)
                 KB.tell(expr(new_clause))
                 if LKB_USAGE:
-                    lkbm.insert_clause_db(new_clause, ner)
-    KB.tell(clause)
+                    lkbm.insert_clause_db(new_clause, sentence)
+    if clause not in KB.clauses:
+        KB.tell(clause)
 
 
 

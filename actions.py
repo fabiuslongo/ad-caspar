@@ -7,7 +7,7 @@ from phidias.Types import *
 import configparser
 import math
 import time
-import datetime
+from datetime import datetime
 from difflib import SequenceMatcher
 
 from lkb_manager import *
@@ -15,25 +15,31 @@ from lkb_manager import *
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+cnt = itertools.count(1)
+dav = itertools.count(1)
+
+
 VERBOSE = config.getboolean('NL_TO_FOL', 'VERBOSE')
 LANGUAGE = config.get('NL_TO_FOL', 'LANGUAGE')
 ASSIGN_RULES_ADMITTED = config.getboolean('NL_TO_FOL', 'ASSIGN_RULES_ADMITTED')
-UNIQUE_NOUNS = config.getboolean('NL_TO_FOL', 'UNIQUE_NOUNS')
-UNIQUE_ACT = config.getboolean('NL_TO_FOL', 'UNIQUE_ACT')
-UNIQUE_ADJ = config.getboolean('NL_TO_FOL', 'UNIQUE_ADJ')
-UNIQUE_PRP = config.getboolean('NL_TO_FOL', 'UNIQUE_PRP')
-UNIQUE_ADV = config.getboolean('NL_TO_FOL', 'UNIQUE_ADV')
+
 WAIT_TIME = config.getint('AGENT', 'WAIT_TIME')
+LOG_ACTIVE = config.getboolean('AGENT', 'LOG_ACTIVE')
+FILE_KB_NAME = config.get('AGENT', 'FILE_KB_NAME')
+
 INCLUDE_ACT_POS = config.getboolean('POS', 'INCLUDE_ACT_POS')
 INCLUDE_NOUNS_POS = config.getboolean('POS', 'INCLUDE_NOUNS_POS')
 INCLUDE_ADJ_POS = config.getboolean('POS', 'INCLUDE_ADJ_POS')
 INCLUDE_PRP_POS = config.getboolean('POS', 'INCLUDE_PRP_POS')
 INCLUDE_ADV_POS = config.getboolean('POS', 'INCLUDE_ADV_POS')
+OBJ_JJ_TO_NOUN = config.getboolean('POS', 'OBJ_JJ_TO_NOUN')
+
 GEN_PREP = config.getboolean('GEN', 'GEN_PREP')
 GEN_ADJ = config.getboolean('GEN', 'GEN_ADJ')
 GEN_ADV = config.getboolean('GEN', 'GEN_ADV')
 GEN_EXTRA = config.getboolean('GEN', 'GEN_EXTRA')
 GEN_EXTRA_POS = config.get('GEN', 'EXTRA_GEN_POS').split(", ")
+
 HOST = config.get('LKB', 'HOST')
 LKB_USAGE = config.getboolean('LKB', 'LKB_USAGE')
 MIN_CONFIDENCE = config.getfloat('LKB', 'MIN_CONFIDENCE')
@@ -90,11 +96,9 @@ class produce_mod(Procedure): pass
 
 # Reactive procedures - routines
 class parse_routine(Procedure): pass
-
 class produce_conds(Procedure): pass
 class aggr_ent_conds(Procedure): pass
 class produce_mod_conds(Procedure): pass
-
 class produce_routine(Procedure): pass
 class aggr_ent_rt(Procedure): pass
 class produce_mod_rt(Procedure): pass
@@ -106,34 +110,30 @@ class check_conds(Procedure): pass
 class go(Procedure): pass
 
 # STT Front-End procedures
-class d(Procedure): pass
-class w(Procedure): pass
-class l(Procedure): pass
-class r(Procedure): pass
 class hkb(Procedure): pass
 class lkb(Procedure): pass
 class flush(Procedure): pass
+class manage_msg(Procedure): pass
 
-
-# initialize Clauses Kb
+# initialize Clauses Kbs
 class chkb(Procedure): pass
 class clkb(Procedure): pass
 
-# test assertions
-class t(Procedure): pass
+# auto feed procedure from file
+class feed(Procedure): pass
+class make_feed(Procedure): pass
 
 # mode reactors
 class HOTWORD_DETECTED(Reactor): pass
-class STT(Reactor): pass
-
+class STT(Belief): pass
 class WAKE(Belief): pass
 class LISTEN(Belief): pass
 class REASON(Belief): pass
 class RETRACT(Belief): pass
 class IS_RULE(Belief): pass
 class WAIT(Belief): pass
-class OUT(Reactor): pass
-class MSG(Reactor): pass
+
+class TEST(Belief): pass
 
 # domotic reactive routines
 class r1(Procedure): pass
@@ -146,17 +146,6 @@ class d2(Procedure): pass
 # domotic sensor simulatons
 class s1(Procedure): pass
 class s2(Procedure): pass
-
-# Fol reasoning utterances
-class c1(Procedure): pass
-class c2(Procedure): pass
-class c3(Procedure): pass
-class c4(Procedure): pass
-class c5(Procedure): pass
-class c6(Procedure): pass
-
-# Fol query utterance
-class q(Procedure): pass
 
 # normal requests beliefs
 class GROUND(Belief): pass
@@ -180,8 +169,11 @@ class COND_PRE_MOD(Belief): pass
 
 class SENSOR(Belief): pass
 class START_ROUTINE(Reactor): pass
+
+# Chatbot beliefs
+class OUT(Reactor): pass
+class MSG(Belief): pass
 class CHAT_ID(Belief): pass
-class MSG(Reactor): pass
 
 # clause
 class CLAUSE(Belief): pass
@@ -208,9 +200,20 @@ class GEN_MASK(Belief): pass
 # Actions crossing var
 class ACT_CROSS_VAR(Belief): pass
 
+# parse rule beliefs
+class DEP(Belief): pass
+class MST_ACT(Belief): pass
+class MST_VAR(Belief): pass
+class MST_PREP(Belief): pass
+class MST_BIND(Belief): pass
+class MST_COMP(Belief): pass
+class MST_COND(Belief): pass
+class parse_deps(Procedure): pass
+class feed_mst(Procedure): pass
+
+
 
 # Question Answering beliefs
-
 class SEQ(Belief): pass
 class CAND(Belief): pass
 class ANSWERED(Belief): pass
@@ -222,9 +225,65 @@ class ROOT(Belief): pass
 class RELATED(Belief): pass
 
 
+
+class feed_kbs(Action):
+    """Feed Knowledge Bases from file"""
+    def execute(self):
+        try:
+            with open(FILE_KB_NAME) as f:
+                for line in f:
+                    print(line)
+                    self.assert_belief(TEST(line.rstrip()))
+        except IOError:
+            print("\nFile " + FILE_KB_NAME + " not found.")
+
+
+class reset_ct(Action):
+    """Reset execution time"""
+    def execute(self):
+        parser.set_start_time()
+
+
+class log_op(Action):
+    """log operations"""
+
+    def execute(self, *args):
+        a = str(args).split("'")
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n" + a[1])
+
+
+class log_cmd(Action):
+    """log direct assertions from keyboard"""
+
+    def execute(self, *args):
+        a = str(args).split("'")
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n" + a[1] + ": " + a[5])
+
+
+class show_ct(Action):
+    """Show execution time"""
+    def execute(self):
+        ct = parser.get_comp_time()
+        print("\nExecution time: ", ct)
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\nExecution time: " + str(ct))
+
+
 class set_wait(Action):
+    """Set duration of the session from WAIT_TIME in config.ini [AGENT]"""
     def execute(self):
         self.assert_belief(WAIT(WAIT_TIME))
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n------ NEW SESSION ------ " + str(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
 
 
 class eval_cls(ActiveBelief):
@@ -259,71 +318,20 @@ class lemma_in_syn(ActiveBelief):
         synset = str(arg2).split("'")[1]
 
         pos = wordnet.VERB
-        language = "eng"
 
-        syns = wordnet.synsets(verb, pos=pos, lang=language)
+        syns = wordnet.synsets(verb, pos=pos, lang=LANGUAGE)
         for syn in syns:
             if syn.name() == synset:
                 return True
         return False
 
 
-class join_clauses(Action):
-    def execute(self, arg1, arg2, arg3, arg4):
-
-        clause1 = str(arg1).split("'")[3]
-        clause2 = str(arg2).split("'")[3]
-        verb = str(arg3).split("'")[3]
-        common_var = str(arg4).split("'")[3]
-
-        print("\nclause1: ", clause1)
-        print("clause2: ", clause2)
-        print("verb: ", verb)
-        print("common_var: ", common_var)
-
-        match = SequenceMatcher(None, clause1, clause2).find_longest_match(0, len(clause1), 0, len(clause2))
-        common = clause1[match.a: match.a + match.size]
-
-        print("match: ", match)
-        print("common: ", common)
-
-        while common[0] == "(" or common[0] == ")" or common[0] == "," or common[0] == " ":
-            common = common[1:]
-
-        num_par_open = common.count("(")
-        print("num_par_open: ", num_par_open)
-        num_par_closed = common.count(")")
-        print("num_par_closed: ", num_par_closed)
-
-        while common[-1] != ")":
-            common = common[:len(common) - 1]
-
-        print("common cleaned: ", common)
-
-        while num_par_open < num_par_closed:
-            common = common[:len(common) - 1]
-            num_par_open = common.count("(")
-            num_par_closed = common.count(")")
-
-        print("common fixed: ", common)
-
-        if str(clause1).find(verb) == -1:
-            new_clause = clause1.replace(common, clause2)
-        else:
-            new_clause = clause2.replace(common, clause1)
-
-        print(new_clause)
-
-        self.assert_belief(DEF_CLAUSE(new_clause))
-
-
 class preprocess_clause(Action):
 
     def execute(self, *args):
-        sentence = args[0]()
-        gen_mask = str(args[1]())
-        mode = str(args[2]())
-        type = str(args[3]())
+        gen_mask = str(args[0]())
+        mode = str(args[1]())
+        type = str(args[2]())
 
         print("\n--------- NEW DEFINITE CLAUSE ---------\n ")
         print("gen_mask: " + gen_mask)
@@ -337,88 +345,43 @@ class preprocess_clause(Action):
 
         self.MAIN_NEG_PRESENT = False
 
+        deps = parser.get_last_deps()
 
-        if parser.get_flush() is False:
+        for i in range(len(deps)):
+            governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
+            dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
+            deps[i] = [deps[i][0], governor, dependent]
 
-            print("USING CACHE....................................................")
-            deps = parser.get_last_deps()
-            print("\n" + str(deps))
+        print("\n" + str(deps))
 
-            vect_LR_fol = fol_manager.get_last_fol()
-            ner = parser.get_last_ner()
-            print("\nner: ", ner)
+        MST = parser.get_last_MST()
+        print("\nMST: \n" + str(MST))
+        print("\nGMC_SUPP: \n" + str(parser.GMC_SUPP))
+        print("\nSUPP_SUPP_REV: \n" + str(parser.GMC_SUPP_REV))
+        print("\nLCD: \n" + str(parser.LCD))
 
-        else:
-
-            print("\n" + sentence)
-            deps = parser.get_deps(sentence, True)
-            parser.set_last_deps(deps)
-            ner = parser.get_last_ner()
-            rtd = parser.get_pending_root_tense_debt()
-            print("\nner: ", ner)
-
-            for i in range(len(deps)):
-                governor = self.get_lemma(deps[i][1]).capitalize() + ":" + self.get_pos(deps[i][1])
-                dependent = self.get_lemma(deps[i][2]).capitalize() + ":" + self.get_pos(deps[i][2])
-                deps[i] = [deps[i][0], governor, dependent]
-
-            # paying the ROOT Tense Debt
-            if rtd is not None:
-                print("ROOT Tense Debt: ", rtd)
-                # getting ROOT verb
-                old_root_tense = ""
-                new_value = ""
-                for d in deps:
-                    if d[0] == "ROOT":
-                        old_root_tense = d[1]
-                        lemma_root = self.get_lemma(d[1])
-                        new_value = lemma_root+":"+rtd
-                        d[1] = new_value
-                        d[2] = new_value
-                        break
-                for d in deps:
-                    if d[0] != "ROOT":
-                        if d[1] == old_root_tense:
-                            d[1] = new_value
-                        if d[2] == old_root_tense:
-                            d[2] = new_value
-            else:
-                print("no ROOT Tense Debt")
-
-            print("\n" + str(deps))
-            parser.set_last_deps(deps)
-
-            MST = parser.create_MST(deps, 'e', 'x')
-            print("\nMST: \n" + str(MST))
-
+        # MST varlist correction on cases of adj-obj
+        if OBJ_JJ_TO_NOUN is True:
             for v in MST[1]:
-                # MST varlist correction on cases of adj-obj
                 if self.get_pos(v[1]) in ['JJ', 'JJR', 'JJS']:
                     old_value = v[1]
                     new_value = self.get_lemma(v[1]) + ":NNP"
                     v[1] = new_value
+
+                    new_value_clean = parser.get_lemma(new_value.lower())[:-2]
+                    print("\nadj-obj correction...", new_value_clean)
+
+                    # checking if the lemma has a disambiguation
+                    if new_value_clean in parser.GMC_SUPP_REV:
+                        parser.LCD[parser.GMC_SUPP_REV[new_value_clean]] = new_value_clean
+
+                    # binds correction
                     for b in MST[3]:
                         if b[0] == old_value:
                             b[0] = new_value
 
-                # MST varlist correction on cases of wrong adverb POS
-                if v[0][0] == "e" and self.get_pos(v[1]) != "RB":
-                    old_value = v[1]
-                    new_value = self.get_lemma(v[1]) + ":RB"
-                    v[1] = new_value
-                    for b in MST[3]:
-                        if b[0] == old_value:
-                            b[0] = new_value
-
-                # leveraging NER for adverbs detection
-                if "(DATE, "+self.get_lemma(v[1])[:-2].lower()+")" in ner and self.get_pos(v[1]) not in ['CD'] and v[0][0] == 'e':
-                    v[1] = self.get_lemma(v[1])+":RB"
-
-            vect_LR_fol = fol_manager.build_LR_fol(MST, 'e')
-            fol_manager.set_last_fol(vect_LR_fol)
-
-            parser.no_flush()
-            fol_manager.no_flush()
+        m = ManageFols(VERBOSE, LANGUAGE)
+        vect_LR_fol = m.build_LR_fol(MST, 'e')
 
         print("\nBefore dealing case:\n" + str(vect_LR_fol))
         if len(vect_LR_fol) == 0:
@@ -432,7 +395,7 @@ class preprocess_clause(Action):
                 if ASSIGN_RULES_ADMITTED:
                     check_isa = fol_manager.check_for_rule(deps, vect_LR_fol)
                     if check_isa:
-                        self.assert_belief(IS_RULE(sentence))
+                        self.assert_belief(IS_RULE("TRUE"))
                 dclause = vect_LR_fol[:]
             else:
                 dclause = vect_LR_fol[:]
@@ -533,6 +496,7 @@ class preprocess_clause(Action):
         else:
             mods = []
             nomain_negs = []
+            main_neg_index = 0
             ent_root = self.get_ent_ROOT(deps)
             dav_act = self.get_dav_rule(dclause, ent_root)
             for v in dclause:
@@ -678,8 +642,7 @@ class preprocess_clause(Action):
             if i == 0:
                 lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[1]
             else:
-                lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[
-                    1] + "_" + lemma_nocount
+                lemma_nocount = total_lemma[i].split(':')[0][:-2] + ":" + total_lemma[i].split(':')[1] + "_" + lemma_nocount
         return lemma_nocount
 
     def process_fol(self, vect_fol, id, voc):
@@ -695,12 +658,7 @@ class preprocess_clause(Action):
         # prepositions
         for v in vect_fol:
             if len(v) == 3:
-
-                if UNIQUE_PRP:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-
+                label = self.get_nocount_lemma(v[0])
                 if GEN_PREP is False or id == "LEFT":
                     if INCLUDE_PRP_POS:
                         lemma = label
@@ -731,13 +689,8 @@ class preprocess_clause(Action):
         for v in vect_fol:
             ACTION_ASSERTED = False
             if len(v) == 4:
-
-                if UNIQUE_ACT:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-                    pos = self.get_pos(v[0])
-
+                label = self.get_nocount_lemma(v[0])
+                pos = self.get_pos(v[0])
                 if INCLUDE_ACT_POS:
                     lemma = label
                 else:
@@ -778,11 +731,7 @@ class preprocess_clause(Action):
         for v in vect_fol:
             if len(v) == 2:
                 if self.get_pos(v[0]) in ['NNP', 'NNPS', 'PRP', 'CD', 'NN', 'NNS', 'PRP', 'PRP$']:
-                    if UNIQUE_NOUNS:
-                        label = v[0]
-                    else:
-                        label = self.get_nocount_lemma(v[0])
-
+                    label = self.get_nocount_lemma(v[0])
                     if INCLUDE_NOUNS_POS:
                         lemma = label
                     else:
@@ -795,12 +744,7 @@ class preprocess_clause(Action):
         # adjectives, adverbs
         for v in vect_fol:
             if self.get_pos(v[0]) in ['JJ', 'JJR', 'JJS']:
-
-                if UNIQUE_ADJ:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
-
+                label = self.get_nocount_lemma(v[0])
                 if GEN_ADJ is False or id == "LEFT":
 
                     if INCLUDE_ADJ_POS:
@@ -822,12 +766,8 @@ class preprocess_clause(Action):
                         self.assert_belief(ADJ(str(id), v[1], lemma))
                         print("ADJ(" + str(id) + ", " + v[1] + ", " + lemma + ")")
 
-            elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS']:
-
-                if UNIQUE_ADV:
-                    label = v[0]
-                else:
-                    label = self.get_nocount_lemma(v[0])
+            elif self.get_pos(v[0]) in ['RB', 'RBR', 'RBS', 'RP']:
+                label = self.get_nocount_lemma(v[0])
 
                 if GEN_ADV is False or id == "LEFT":
                     if INCLUDE_ADV_POS:
@@ -840,10 +780,8 @@ class preprocess_clause(Action):
                         print("ADV(" + str(id) + ", " + v[1] + ", " + lemma + ")")
 
                 elif v[0] in voc and voc[v[0]] is True:
-                    if INCLUDE_ADV_POS:
-                        lemma = label
-                    else:
-                        lemma = parser.get_lemma(label)
+
+                    lemma = parser.get_lemma(label)
 
                     if v[1] in admissible_vars:
                         self.assert_belief(ADV(str(id), v[1], lemma))
@@ -873,6 +811,7 @@ class retract_clause(Action):
 
         if def_clause in kb_fol.clauses:
             kb_fol.retract(def_clause)
+            # deleting from LKB too?
 
 
 class new_clause(Action):
@@ -882,19 +821,17 @@ class new_clause(Action):
 
         start_time = time.time()
 
-        print("\n" + clause)
+        #print("\n", sentence)
         mf = parser.morph(clause)
+        print("\n", mf)
+
         def_clause = expr(mf)
         sentence = parser.get_last_sentence()
 
-        kb_fol.nested_tell(def_clause, "")
+        kb_fol.nested_tell(def_clause, sentence)
 
         if LKB_USAGE:
             lkbm.insert_clause_db(mf, sentence)
-
-        end_time = time.time()
-        assert_time = end_time - start_time
-        print("\nAssert time: ", assert_time)
 
 
 class reason(Action):
@@ -1008,47 +945,28 @@ class reason(Action):
             if EMPTY_HKB_AFTER_REASONING:
                 kb_fol.clauses = []
 
-        end_time2 = time.time()
-        query_time2 = end_time2 - start_time
-        print("\nQuery time: ", query_time2)
-
 
 class assert_command(Action):
 
-    def execute(self, *args):
+    def execute(self):
 
-        sentence = args[0]()
+        deps = parser.get_last_deps()
+        MST = parser.get_last_MST()
 
-        # ----> words or chars not dealing well with fol conversion
-        # verb_i2 must not be part of some verb_j1, with i!=j
-        # [verb_i1, verb_i2]
-
-        SWAP_STR = [["turn on", "change"], [":", "."], ["_", "-"]]
-
-        for s in SWAP_STR:
-            sentence = sentence.lower().replace(s[0], s[1])
-
-        print(sentence)
-
-        deps = parser.get_deps(sentence, True)
-
-        TABLE = parser.create_MST(deps, 'd', 'x')
-
-        m = ManageFols(VERBOSE, LANGUAGE)
-        vect_LR_fol = m.build_LR_fol(TABLE, 'd')
+        vect_LR_fol = fol_manager.build_LR_fol(MST, 'd')
 
         # getting fol's type
         check_isa = False
-        check_implication = m.check_implication(vect_LR_fol)
+        check_implication = fol_manager.check_implication(vect_LR_fol)
         if check_implication is False:
-            check_isa = m.check_isa(vect_LR_fol, deps)
+            check_isa = fol_manager.check_isa(vect_LR_fol, deps)
 
-        gentle_LR_fol = m.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
+        gentle_LR_fol = fol_manager.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
         print(str(gentle_LR_fol))
 
-        if vect_LR_fol[1][0] == "==>":
+        if len(vect_LR_fol) > 1 and vect_LR_fol[1][0] == "==>":
 
-            dateTimeObj = datetime.datetime.now()
+            dateTimeObj = datetime.now()
             id_routine = dateTimeObj.microsecond
 
             self.process_conditions(vect_LR_fol[0], id_routine)
@@ -1057,7 +975,7 @@ class assert_command(Action):
             self.process(vect_LR_fol)
 
     def process_conditions(self, vect_fol, id_routine):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
         for g in vect_fol:
             if len(g) == 3:
@@ -1074,7 +992,7 @@ class assert_command(Action):
                 self.assert_belief(PRE_COND(str(id_routine), verb, g[1], g[2], g[3]))
 
     def process_routine(self, vect_fol, id_routine):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
         for g in vect_fol:
             if len(g) == 3:
@@ -1092,7 +1010,7 @@ class assert_command(Action):
 
     def process(self, vect_fol):
 
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         for g in vect_fol:
@@ -1125,7 +1043,7 @@ class assert_command(Action):
 
 class join_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))
@@ -1138,7 +1056,7 @@ class join_grounds(Action):
 
 class join_cond_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))
@@ -1151,7 +1069,7 @@ class join_cond_grounds(Action):
 
 class join_routine_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))
@@ -1184,7 +1102,7 @@ class append_intent_params(Action):
         prep = self.get_arg(str(args[3]))
         prep_obj = self.get_arg(str(args[4]))
 
-        if prep == "in":
+        if prep == "In":
             location = prep_obj
         else:
 
@@ -1214,7 +1132,7 @@ class append_routine_params(Action):
         location = self.get_arg(str(args[6]))
         parameters_list = self.get_arg(str(args[7]))
 
-        if prep == "in":
+        if prep == "In":
             location = prep_obj
         else:
             if len(parameters_list) == 0:
@@ -1319,13 +1237,40 @@ class simulate_sensor(Action):
         self.assert_belief(SENSOR(verb, subject, object))
 
 
-class NLP_Parser(object):
-    def __init__(self):
-        self.VERBOSE = False
-        self.parser = Parse(self.VERBOSE)
+# ---------------------- Definite Clauses Builder section
 
-    def get_parser(self):
-        return self.parser
+
+class join_clauses(Action):
+    def execute(self, arg1, arg2, arg3, arg4):
+
+        clause1 = str(arg1).split("'")[3]
+        clause2 = str(arg2).split("'")[3]
+        verb = str(arg3).split("'")[3]
+        common_var = str(arg4).split("'")[3]
+
+        match = SequenceMatcher(None, clause1, clause2).find_longest_match(0, len(clause1), 0, len(clause2))
+        common = clause1[match.a: match.a + match.size]
+
+        while common[0] == "(" or common[0] == ")" or common[0] == "," or common[0] == " ":
+            common = common[1:]
+
+        num_par_open = common.count("(")
+        num_par_closed = common.count(")")
+
+        while common[-1] != ")":
+            common = common[:len(common) - 1]
+
+        while num_par_open < num_par_closed:
+            common = common[:len(common) - 1]
+            num_par_open = common.count("(")
+            num_par_closed = common.count(")")
+
+        if str(clause1).find(verb) == -1:
+            new_clause = clause1.replace(common, clause2)
+        else:
+            new_clause = clause2.replace(common, clause1)
+
+        self.assert_belief(DEF_CLAUSE(new_clause))
 
 
 class aggregate(Action):
@@ -1645,7 +1590,7 @@ class no_dav(ActiveBelief):
 
         var = str(x).split("'")[3]
         # Check for davidsonian
-        if var[0] == 'e':
+        if var[0] == 'e' or var[0] == 'd':
             return False
         else:
             return True
@@ -1735,6 +1680,265 @@ class show_fol_kb(Action):
         print("\n" + str(len(kb_fol.clauses)) + " clauses in Higher Knowledge Base")
 
 
+# ---------------------- MST Builder Section
+
+class parse_rules(Action):
+    """Asserting dependencies related beliefs."""
+    def execute(self, arg):
+
+        parser.flush()
+
+        sent = str(arg).split("'")[3]
+        print("\n", sent)
+        deps = parser.get_deps(sent, True)
+        print("\n", deps)
+        parser.set_last_deps(deps)
+
+        for dep in deps:
+            self.assert_belief(DEP(dep[0], str(dep[1]), str(dep[2])))
+
+
+class create_MST_ACT(Action):
+    """Asserting an MST  Action."""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        subj = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        subj_var = "x"+str(next(cnt))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
+        self.assert_belief(MST_VAR(subj_var, subj))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_ACT_PASS(Action):
+    """Asserting an MST PASSIVE Action."""
+    def execute(self, arg1, arg2):
+        verb = str(arg1).split("'")[3]
+        subj = str(arg2).split("'")[3]
+
+        davidsonian = "e" + str(next(dav))
+        subj_var = "x"+str(next(cnt))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, obj_var, subj_var))
+        self.assert_belief(MST_VAR(subj_var, subj))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_PREP(Action):
+    """Asserting an MST preposition."""
+    def execute(self, arg1, arg2):
+        dav = str(arg1).split("'")[3]
+        prep = str(arg2).split("'")[3]
+
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_PREP(prep, dav, obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class COND_WORD(ActiveBelief):
+    """Checking for conditionals related words."""
+    def evaluate(self, x):
+
+        word = str(x).split("'")[3]
+        # Check for conditional word
+        if word.upper()[0:4] == "WHEN":
+            return True
+        else:
+            return False
+
+
+class NBW(ActiveBelief):
+    """Checking for not blacklisted words."""
+    def evaluate(self, x):
+
+        word = str(x).split("'")[3]
+
+        # Check for conditional word
+        if self.get_lemma(word)[:-2].lower() not in ["that"]:
+            return True
+        else:
+            return False
+
+    def get_lemma(self, s):
+        s_list = s.split(':')
+        return s_list[0]
+
+
+class feed_mst_actions_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1, arg2, arg3, arg4):
+        dav = str(arg1).split("'")[3]
+        verb = str(arg2).split("'")[3]
+        subj = str(arg3).split("'")[3]
+        obj = str(arg4).split("'")[3]
+
+        action = []
+        action.append(dav)
+        action.append(verb)
+        action.append(subj)
+        action.append(obj)
+
+        parser.feed_MST(action, 0)
+
+
+class feed_mst_vars_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1, arg2):
+        var = str(arg1).split("'")[3]
+        val = str(arg2).split("'")[3]
+
+        variable = []
+        variable.append(var)
+        variable.append(val)
+
+        parser.feed_MST(variable, 1)
+
+
+class feed_mst_preps_parser(Action):
+    """Feed MST preps parser"""
+    def execute(self, arg1, arg2, arg3):
+        label = str(arg1).split("'")[3]
+        var = str(arg2).split("'")[3]
+        var_obj = str(arg3).split("'")[3]
+
+        prep = []
+        prep.append(label)
+        prep.append(var)
+        prep.append(var_obj)
+
+        parser.feed_MST(prep, 2)
+
+
+class feed_mst_binds_parser(Action):
+    """Feed MST binds parser"""
+    def execute(self, arg1, arg2):
+        related = str(arg1).split("'")[3]
+        relating = str(arg2).split("'")[3]
+
+        bind = []
+        bind.append(related)
+        bind.append(relating)
+
+        parser.feed_MST(bind, 3)
+
+
+class feed_mst_comps_parser(Action):
+    """Feed MST comps parser"""
+    def execute(self, arg1, arg2):
+        related = str(arg1).split("'")[3]
+        relating = str(arg2).split("'")[3]
+
+        comp = []
+        comp.append(related)
+        comp.append(relating)
+
+        parser.feed_MST(comp, 4)
+
+
+class feed_mst_conds_parser(Action):
+    """Feed MST actions parser"""
+    def execute(self, arg1):
+        cond = str(arg1).split("'")[3]
+
+        parser.feed_MST(cond, 5)
+
+
+class flush_parser_cache(Action):
+    """Flushing parser cache"""
+    def execute(self):
+        parser.flush()
+
+
+class concat_mst_verbs(Action):
+    """Concatenate composite verbs"""
+    def execute(self, arg1, arg2, arg3, arg4, arg5):
+        verb1 = str(arg1).split("'")[3]
+        verb2 = str(arg2).split("'")[3]
+        dav = str(arg3).split("'")[3]
+        subj = str(arg4).split("'")[3]
+        obj = str(arg5).split("'")[3]
+
+        self.assert_belief(MST_ACT(verb1+"_"+verb2, dav, subj, obj))
+
+
+class Past_Part(ActiveBelief):
+    """Checking for Past Participle tense"""
+    def evaluate(self, x):
+
+        label = str(x).split("'")[3]
+
+        if label.split(':')[1] == "VBN":
+            return True
+        else:
+            return False
+
+
+class Wh_Det(ActiveBelief):
+    """Checking for Wh-determiner"""
+    def evaluate(self, x):
+
+        label = str(x).split("'")[3]
+
+        if label != "?":
+            if label.split(':')[1] == "WDT":
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
+class create_MST_ACT_SUBJ(Action):
+    """Asserting an MST Action with custom var subj"""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        subj_var = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, subj_var, obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_MST_ACT_EX(Action):
+    """Asserting an MST Existencial"""
+    def execute(self, arg1):
+
+        verb = str(arg1).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x" + str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
+        self.assert_belief(MST_VAR(obj_var, "?"))
+
+
+class create_IMP_MST_ACT(Action):
+    """Asserting an Imperative MST Action."""
+    def execute(self, arg1, arg2):
+
+        verb = str(arg1).split("'")[3]
+        obj = str(arg2).split("'")[3]
+
+        davidsonian = "e"+str(next(dav))
+        obj_var = "x"+str(next(cnt))
+
+        self.assert_belief(MST_ACT(verb, davidsonian, "_", obj_var))
+        self.assert_belief(MST_VAR(obj_var, obj))
+
+
+
+# ---------------------- AD-CASPAR exclusive
+
+
 class show_lkb(Action):
     def execute(self):
         count = lkbm.show_LKB()
@@ -1754,13 +1958,6 @@ class clear_lkb(Action):
         count = lkbm.clear_lkb()
         print("\nLower Clauses kb initialized.")
         print(count, " clauses deleted.")
-
-
-class flush(Action):
-    def execute(self):
-        parser.flush()
-        fol_manager.flush()
-        print("\nflushing cache...")
 
 
 class check_last_char(ActiveBelief):
@@ -1896,4 +2093,5 @@ class assert_sequence(Action):
 class tense_debt_paid(Action):
     def execute(self):
         parser.set_pending_root_tense_debt(None)
+
 

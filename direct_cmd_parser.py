@@ -22,3 +22,4 @@ produce_intent() / (PRE_INTENT(V, D, X, L, T) & MOD(D, W, K)) >> [-PRE_INTENT(V,
 produce_intent() / (PRE_INTENT(V, D, X, L, T) & GROUND(M, D, K)) >> [-PRE_INTENT(V, D, X, L, T), -GROUND(M, D, K), append_intent_mods(V, D, X, K, L, T), produce_intent()]
 # asserting and executing actions
 produce_intent() / PRE_INTENT(V, D, X, L, T) >> [-PRE_INTENT(V, D, X, L, T), +INTENT(V, X, L, T)]
+
