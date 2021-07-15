@@ -1,7 +1,7 @@
 # AD-CASPAR
 
 This is the repository of the Python (3.7+) implementation of AD-CASPAR (Abductive-Deductive Cognitive Architecture System Planned and Reactive)
-referred to the paper [AD-CASPAR: Abductive-Deductive Cognitive Architecture based on Natural Language and First Order Logic Reasoning](http://ceur-ws.org/Vol-2735/), presented in 
+referred to the paper [AD-CASPAR: Abductive-Deductive Cognitive Architecture based on Natural Language and First Order Logic Reasoning](http://ceur-ws.org/Vol-2735/paper34.pdf), presented in 
 the 4th Workshop on Natural Language for Artificial Intelligence (NL4AI 2020) co-located with the 19th International Conference of the Italian Association for Artificial Intelligence (AI*IA 2020).
 This architecture inherits all the features of his predecessor [CASPAR](https://github.com/fabiuslongo/pycaspar), extending them with a 
  two-level Clauses Knowledge Base, an abductive inference as pre-phase of deduction, and a Telegram
@@ -176,7 +176,7 @@ EMPTY_HKB_AFTER_REASONING (LKB Section) in config.ini.
 
 ![Image 4](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query2.JPG)
 
-By changing the values of SHOW_REL (QA Section) in config.ini, it can be possible to show the clauses involved in the abduction pre-inference, together with their confidences.
+By changing the values of SHOW_REL (QA Section) in config.ini, it can be possible to show the clauses involved (taken from LKB) in the abduction pre-inference, together with their confidences.
 
 ![Image 5](https://github.com/fabiuslongo/ad-caspar/blob/master/images/query3.JPG)
 
@@ -189,7 +189,7 @@ Optionally, with the value of SHOW_REL set to _true_, the closest results can be
 
 ### Nested Reasoning
 
-In order to test the _Nested Reasoning_ inherited from [CASPAR](https://github.com/fabiuslongo/pycaspar) by using the Telegram bot, you must be sure some parameters in config.ini are as it follows:
+In order to test the _Nested Reasoning_ inherited from [CASPAR](https://github.com/fabiuslongo/pycaspar) by using the Telegram bot, you must be sure some parameters in config.ini are set as it follows:
 
 ---------------
 
