@@ -244,6 +244,17 @@ class reset_ct(Action):
         parser.set_start_time()
 
 
+class log_op(Action):
+    """log operations"""
+
+    def execute(self, *args):
+        a = str(args).split("'")
+
+        if LOG_ACTIVE:
+            with open("log.txt", "a") as myfile:
+                myfile.write("\n\n" + a[1])
+
+
 class log_cmd(Action):
     """log direct assertions from keyboard"""
 

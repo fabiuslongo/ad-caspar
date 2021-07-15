@@ -39,20 +39,20 @@ hkb() >> [show_fol_kb()]
 lkb() >> [show_lkb()]
 
 # initialize Higher Clauses Kb
-chkb() >> [clear_hkb()]
+chkb() >> [log_op("Flushing High Clauses KB..."), clear_hkb()]
 # initialize Lower Clauses Kb
-clkb() >> [clear_lkb()]
+clkb() >> [log_op("Flushing Low Clauses KB..."), clear_lkb()]
 
 # chatbot wake word
 +message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start()]
-+message(C, X) / WAKE("ON") >> [+CHAT_ID(C), +MSG(X), manage_msg(), Timer(W).start()]
++message(C, X) / WAKE("ON") >> [reset_ct(), +CHAT_ID(C), +MSG(X), manage_msg(), Timer(W).start()]
 
 # Assertion management
-manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, ".")) >> [reset_ct(), Reply(C, "Got it."), -MSG(X), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), process_mst(), log_cmd("Feed", X), manage_msg()]
+manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, ".")) >> [Reply(C, "Got it."), -MSG(X), -REASON("ON"), +LISTEN("ON"), parse_rules(X), parse_deps(), feed_mst(), process_mst(), log_cmd("Feed", X), manage_msg()]
 # Questions management
-manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, "?")) >> [reset_ct(), Reply(C, "Let me think..."), -MSG(X), -LISTEN("ON"), +REASON("ON"), +STT(X), log_cmd("Query", X), qreason(), manage_msg()]
+manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, "?")) >> [Reply(C, "Let me think..."), -MSG(X), -LISTEN("ON"), +REASON("ON"), +STT(X), log_cmd("Query", X), qreason(), manage_msg()]
 # Domotic command management
-manage_msg() / (MSG(X) & CHAT_ID(C)) >> [reset_ct(), Reply(C, "Domotic command detected"), -MSG(X), parse_rules(X), parse_deps(), feed_mst(), process_cmd(), log_cmd("IoT", X), manage_msg()]
+manage_msg() / (MSG(X) & CHAT_ID(C)) >> [Reply(C, "Domotic command detected"), -MSG(X), parse_rules(X), parse_deps(), feed_mst(), process_cmd(), log_cmd("IoT", X), manage_msg()]
 # Ending operation
 manage_msg() >> [show_ct(), show_line("\n------------- End of operations.\n"), Timer(W).start()]
 
@@ -67,8 +67,6 @@ qreason() / (CAND(X) & WAKE("ON") & REASON("ON")) >> [show_line("\nProcessing ca
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES') & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
 qreason() / (WAKE("ON") & REASON("ON") & ANSWERED('YES')) >> [-ANSWERED('YES')]
 qreason() / (WAKE("ON") & REASON("ON") & RELATED(X)) >> [-RELATED(X), +OUT(X), qreason()]
-
-
 
 
 # Nominal clauses assertion --> single: FULL", "ONE" ---  multiple: "BASE", "MORE"

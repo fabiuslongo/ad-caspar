@@ -330,7 +330,8 @@ def nested_tell_inner(KB, clause, sentence):
                 KB.tell(expr(new_clause))
                 if LKB_USAGE:
                     lkbm.insert_clause_db(new_clause, sentence)
-    KB.tell(clause)
+    if clause not in KB.clauses:
+        KB.tell(clause)
 
 
 
