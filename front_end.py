@@ -39,9 +39,9 @@ hkb() >> [show_fol_kb()]
 lkb() >> [show_lkb()]
 
 # initialize Higher Clauses Kb
-chkb() >> [log_op("Flushing High Clauses KB..."), clear_hkb()]
+chkb() >> [log_op(">>> Flushing High Clauses KB..."), clear_hkb()]
 # initialize Lower Clauses Kb
-clkb() >> [log_op("Flushing Low Clauses KB..."), clear_lkb()]
+clkb() >> [log_op(">>> Flushing Low Clauses KB..."), clear_lkb()]
 
 # chatbot wake word
 +message(C, "hello") / WAIT(W) >> [Reply(C, "Hello!"), +WAKE("ON"), +CHAT_ID(C), Timer(W).start()]
