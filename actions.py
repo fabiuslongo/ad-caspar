@@ -937,20 +937,7 @@ class reason(Action):
 
 class assert_command(Action):
 
-    def execute(self, *args):
-
-        sentence = args[0]()
-
-        # ----> words or chars not dealing well with fol conversion
-        # verb_i2 must not be part of some verb_j1, with i!=j
-        # [verb_i1, verb_i2]
-
-        SWAP_STR = [["turn on", "change"], [":", "."], ["_", "-"]]
-
-        for s in SWAP_STR:
-            sentence = sentence.lower().replace(s[0], s[1])
-
-        print(sentence)
+    def execute(self):
 
         deps = parser.get_last_deps()
         MST = parser.get_last_MST()
@@ -966,9 +953,9 @@ class assert_command(Action):
         gentle_LR_fol = fol_manager.vect_LR_to_gentle_LR(vect_LR_fol, deps, check_implication, check_isa)
         print(str(gentle_LR_fol))
 
-        if vect_LR_fol[1][0] == "==>":
+        if len(vect_LR_fol) > 1 and vect_LR_fol[1][0] == "==>":
 
-            dateTimeObj = datetime.datetime.now()
+            dateTimeObj = datetime.now()
             id_routine = dateTimeObj.microsecond
 
             self.process_conditions(vect_LR_fol[0], id_routine)
@@ -977,7 +964,7 @@ class assert_command(Action):
             self.process(vect_LR_fol)
 
     def process_conditions(self, vect_fol, id_routine):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
         for g in vect_fol:
             if len(g) == 3:
@@ -994,7 +981,7 @@ class assert_command(Action):
                 self.assert_belief(PRE_COND(str(id_routine), verb, g[1], g[2], g[3]))
 
     def process_routine(self, vect_fol, id_routine):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
         for g in vect_fol:
             if len(g) == 3:
@@ -1012,7 +999,7 @@ class assert_command(Action):
 
     def process(self, vect_fol):
 
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         for g in vect_fol:
@@ -1045,7 +1032,7 @@ class assert_command(Action):
 
 class join_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))
@@ -1058,7 +1045,7 @@ class join_grounds(Action):
 
 class join_cond_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))
@@ -1071,7 +1058,7 @@ class join_cond_grounds(Action):
 
 class join_routine_grounds(Action):
     def execute(self, *args):
-        dateTimeObj = datetime.datetime.now()
+        dateTimeObj = datetime.now()
         id_ground = dateTimeObj.microsecond
 
         union = self.get_arg(str(args[1])) + " " + self.get_arg(str(args[2]))

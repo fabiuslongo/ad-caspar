@@ -1,5 +1,5 @@
 from nltk.corpus import wordnet
-import copy
+
 
 
 
@@ -9,6 +9,9 @@ class ManageFols(object):
         # Original sources
         self.sentences = []
 
+        # Preliminary Knowledge base
+        self.PKB = []
+
         self.VERBOSE = VERBOSE
 
         self.NEG_SYNS = ['no.r.01', 'no.r.02', 'no.r.03', 'not.r.01']
@@ -16,26 +19,13 @@ class ManageFols(object):
 
         self.language = language
 
-        self.last_fol = []
 
-        # enable cache usage
-        self.FLUSH = True
-
-
-    def set_last_fol(self, fol):
-        self.last_fol = copy.deepcopy(fol)
-
-    def get_last_fol(self):
-        return copy.deepcopy(self.last_fol)
+    def get_PKB(self):
+        return self.PKB
 
 
-    def flush(self):
-        self.FLUSH = True
-        self.last_fol = []
-
-
-    def no_flush(self):
-        self.FLUSH = False
+    def add_PKB(self, element):
+        self.PKB.append(element)
 
 
     def get_pos(self, s):
@@ -49,7 +39,6 @@ class ManageFols(object):
     def get_lemma(self, s):
         s_list = s.split(':')
         return s_list[0]
-
 
 
     def build_fol(self, table, dav):
@@ -203,7 +192,6 @@ class ManageFols(object):
                     fol.append(comp)
 
         return fol
-
 
 
     def build_LR_fol(self, table, dav):
@@ -479,7 +467,6 @@ class ManageFols(object):
         return fol
 
 
-
     def term_vect_to_gentle_term(self, term):
         # action case
         gentle_term = []
@@ -496,12 +483,11 @@ class ManageFols(object):
         return gentle_term
 
 
-
     def fol_vect_to_gentle_fol(self, fol_vect):
 
         gentle_table = []
 
-        if fol_vect[1] == "==>":
+        if len(fol_vect) > 1 and fol_vect[1] == "==>":
 
             LHS = []
 
@@ -572,13 +558,11 @@ class ManageFols(object):
         return gentle_table
 
 
-
     def check_implication(self, clause_vect):
         if len(clause_vect) == 3:
             if clause_vect[1][0] == '==>':
                 return True
         return False
-
 
 
     def check_neg(self, word):
@@ -597,7 +581,6 @@ class ManageFols(object):
             if str(synset.name()) in self.ISA_SYNS:
                 return True
         return False
-
 
 
     def check_isa(self, vect_fol, deps):
@@ -646,7 +629,6 @@ class ManageFols(object):
 
 
     def build_isa_fol(self, fol, deps):
-
         isa_fol = []
         isa_term = ""
         subj = ""
@@ -711,23 +693,6 @@ class ManageFols(object):
         isa_fol.append(rhs)
 
         return isa_fol
-
-
-
-
-
-
-    def createPKB(self, source, parser, language):
-
-        document = open(source, "r").read()
-        data = document.splitlines()
-
-        for element in data:
-            self.sentences.append(element)
-            deps = parser.get_deps(element)
-            Ren = Uniquelizer(self.VERBOSE, language)
-            m_deps = Ren.morph_deps(deps)
-            self.PKB.append(m_deps)
 
 
     def vect_LR_to_gentle_LR(self, LR_fol, deps, check_implication, check_isa):
@@ -874,9 +839,6 @@ class ManageFols(object):
         return vect_LR_fol
 
 
-
-
-
     def seek_and_change_var(self, fol, origin_var, dest_var):
         new_fol = fol[:]
         for i in range(len(fol)):
@@ -887,7 +849,6 @@ class ManageFols(object):
 
 
     def isa_fol_to_clause(self, isa_fol):
-
         new_isa_fol = []
         subj_var = isa_fol[1][2]
         obj_var = isa_fol[1][3]

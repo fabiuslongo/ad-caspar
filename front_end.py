@@ -17,13 +17,13 @@ class process_cmd(Procedure): pass
 # turn off the lights in the living room
 
 # Sensors
-s1() >> [simulate_sensor("be", "time", "12.00")]
-s2() >> [simulate_sensor("be", "temperature", "25")]
+s1() >> [simulate_sensor("Be", "Time", "12.00")]
+s2() >> [simulate_sensor("Be", "Temperature", "25")]
 
 make_feed() / TEST(X) >> [-TEST(X), reset_ct(), parse_rules(X), parse_deps(), feed_mst(), process_mst(), log_cmd("Feed", X), show_ct(), make_feed()]
 make_feed() >> [show_line("\nFeeding KBs ended.\n")]
 
-
+# Feeding Clauses KB with sentences in feed.txt
 feed() >> [show_line("\nFeeding KBs from file....\n"), +WAKE("ON"),  +LISTEN("ON"), feed_kbs(), make_feed()]
 
 
@@ -52,7 +52,7 @@ manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, ".")) >> [reset_ct(), R
 # Questions management
 manage_msg() / (MSG(X) & CHAT_ID(C) & check_last_char(X, "?")) >> [reset_ct(), Reply(C, "Let me think..."), -MSG(X), -LISTEN("ON"), +REASON("ON"), +STT(X), log_cmd("Query", X), qreason(), manage_msg()]
 # Domotic command management
-manage_msg() / (MSG(X) & CHAT_ID(C)) >> [reset_ct(), Reply(C, "Domotic command detected"), +STT(X), process_cmd(), log_cmd("IoT", X), manage_msg()]
+manage_msg() / (MSG(X) & CHAT_ID(C)) >> [reset_ct(), Reply(C, "Domotic command detected"), -MSG(X), parse_rules(X), parse_deps(), feed_mst(), process_cmd(), log_cmd("IoT", X), manage_msg()]
 # Ending operation
 manage_msg() >> [show_ct(), show_line("\n------------- End of operations.\n"), Timer(W).start()]
 
@@ -84,7 +84,7 @@ new_def_clause(M, T) / WAIT(W) >> [show_line("\n------------- Done.\n"), Timer(W
 
 
 # Domotic Reasoning
-process_cmd() / WAKE("ON") >> [show_line("\nProcessing domotic command...\n"), assert_command(X), parse_command(), parse_routine()]
+process_cmd() / (WAKE("ON")) >> [show_line("\nProcessing domotic command...\n"), assert_command(), parse_command(), parse_routine()]
 
 +TIMEOUT("ON") / (WAKE("ON") & LISTEN("ON") & REASON("ON") & CHAT_ID(C)) >> [show_line("Returning to sleep..."), Reply(C, "Returning to sleep..."), -WAKE("ON"), -LISTEN("ON"), -REASON("ON")]
 +TIMEOUT("ON") / (WAKE("ON") & REASON("ON") & CHAT_ID(C)) >> [show_line("Returning to sleep..."), Reply(C, "Returning to sleep..."), -REASON("ON"), -WAKE("ON")]
