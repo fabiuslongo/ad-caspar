@@ -27,7 +27,6 @@ class ANSWERED(Belief): pass
 
 
 class join_seq(Action):
-    """Join sequence"""
     def execute(self, *args):
        seq = str(args).split("'")
        new_seq = ""
@@ -45,7 +44,6 @@ class join_seq(Action):
 
 
 class aux_included(ActiveBelief):
-    """Check for auxiliary do, does, did"""
     def evaluate(self, x):
 
         var = str(x).split("'")[3]
@@ -57,7 +55,6 @@ class aux_included(ActiveBelief):
 
 
 class all_not_null(ActiveBelief):
-    """All arguments are not null"""
     def evaluate(self, *args):
 
         vars = str(args).split("'")
@@ -69,7 +66,6 @@ class all_not_null(ActiveBelief):
 
 
 class null(ActiveBelief):
-    """All arguments are null"""
     def evaluate(self, *args):
 
         vars = str(args).split("'")
@@ -81,7 +77,6 @@ class null(ActiveBelief):
 
 
 class check_cop(ActiveBelief):
-    """Check for copular verb from COP_VERB in config.ini [QA]"""
     def evaluate(self, x):
 
         var = str(x).split("'")[3]
@@ -125,7 +120,7 @@ getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A) & null(X, Y)
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & null(X)) >> [show_line("\nWHAT 1 null.."), -SEQ(X, A, Y, V, O, K), join_seq(X, Y, V, O, K, "Dummy"), getcand()]
 # what movies have you seen recently?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what") & aux_included(A)) >> [show_line("\nWHAT +aux not null..."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, A, V, O, K),  join_seq(X, Y, A, V, O, K, "is Dummy"), getcand()]
-# what qualities do you think are important in a friend? - TEST (need to revise Definite Clauses Builder)
+# what qualities do you think are important in a friend?
 getcand() / (SEQ(X, A, Y, V, O, K) & CASE("what")) >> [show_line("\nWHAT -aux all not null.."), -SEQ(X, A, Y, V, O, K), join_seq("Dummy is", X, Y, V, O, K),  join_seq(X, Y, V, O, K, "is Dummy"), getcand()]
 
 # --- WHERE --- see LOC_PREPS in config.ini into [QA]

@@ -4,10 +4,6 @@ import os
 from collections import Counter
 from nltk.corpus import wordnet
 import configparser
-<<<<<<< HEAD
-=======
-import itertools
->>>>>>> origin/master
 import time
 
 
@@ -25,10 +21,6 @@ GMC_ACTIVE = config.getboolean('GROUNDED_MEANING_CONTEXT', 'GMC_ACTIVE')
 GMC_POS = config.get('GROUNDED_MEANING_CONTEXT', 'GMC_POS').split(", ")
 
 OBJ_JJ_TO_NOUN = config.getboolean('POS', 'OBJ_JJ_TO_NOUN')
-
-
-
-
 
 
 
@@ -92,12 +84,6 @@ class Parse(object):
         # Lemmas correction dictionary
         self.LCD = {}
 
-<<<<<<< HEAD
-=======
-        self.cnt = itertools.count(1)
-        self.dav = itertools.count(1)
-
->>>>>>> origin/master
         # Beginning Computational time
         self.start_time = 0
 
@@ -108,27 +94,8 @@ class Parse(object):
 
 
     def get_comp_time(self):
-<<<<<<< HEAD
         assert_time = time.time() - self.start_time
         return assert_time
-=======
-        end_time = time.time()
-        assert_time = end_time - self.start_time
-        return assert_time
-
-
-    def Iterator_init(self):
-        self.cnt = itertools.count(1)
-        self.dav = itertools.count(1)
-
-
-    def Iterator_next_dav(self):
-        return(next(self.dav))
-
-
-    def Iterator_next_var(self):
-        return(next(self.cnt))
->>>>>>> origin/master
 
 
     def feed_MST(self, component, index):
@@ -233,7 +200,7 @@ class Parse(object):
 
 
 
-    def get_deps(self, input_text, LEMMATIZED, DISOK):
+    def get_deps(self, input_text, LEMMATIZED):
 
         nlp = self.get_nlp_engine()
         doc = nlp(input_text)
@@ -274,7 +241,7 @@ class Parse(object):
                 print("\n<--------------- Getting from GMC: "+token.text+" ("+shrinked_proper_syn+")")
 
             # Otherwise a proper synset must be inferred....
-            elif DISOK and DIS_ACTIVE and (token.tag_ in DIS_VERB or token.tag_ in DIS_NOUN or token.tag_ in DIS_ADJ or token.tag_ in DIS_ADV) and token.lemma_ not in DIS_EXCEPTIONS:
+            elif DIS_ACTIVE and (token.tag_ in DIS_VERB or token.tag_ in DIS_NOUN or token.tag_ in DIS_ADJ or token.tag_ in DIS_ADV) and token.lemma_ not in DIS_EXCEPTIONS:
 
                 if token.tag_ in DIS_VERB:
                     pos = wordnet.VERB
